@@ -1,3 +1,4 @@
+import { tr } from "../i18n";
 import React, { useMemo, useState } from "react";
 import { byWeekday, equityCurve, groupBy, sortTrades, summarize } from "../services/analytics";
 import { DashboardSnapshot } from "../services/aggregate";
@@ -18,29 +19,29 @@ import { Money, Section, StatCard, fmtPct, money, toneClass } from "./ui";
 import { Trade } from "../types";
 
 const CATEGORY_LABELS = {
-  performance: "表现",
-  risk: "风险",
-  volume: "数量",
-  average: "均值",
+  get performance() { return tr("表现"); },
+  get risk() { return tr("风险"); },
+  get volume() { return tr("数量"); },
+  get average() { return tr("均值"); },
 } as const;
 
 /** 环比文案跟着时间档走 */
 function prevLabel(preset: string): string {
   switch (preset) {
     case "today":
-      return "较昨日";
+      return tr("较昨日");
     case "yesterday":
-      return "较前日";
+      return tr("较前日");
     case "week":
-      return "较上周";
+      return tr("较上周");
     case "month":
-      return "较上月";
+      return tr("较上月");
     case "quarter":
-      return "较上季";
+      return tr("较上季");
     case "year":
-      return "较去年";
+      return tr("较去年");
     default:
-      return "较上期";
+      return tr("较上期");
   }
 }
 
@@ -86,7 +87,7 @@ export function Dashboard(props: {
   const curve = equityCurve(trades);
   const bySetup = groupBy(trades, (t) => t.setup).slice(0, 8);
   const bySymbol = groupBy(trades, (t) => t.symbol).slice(0, 8);
-  const weekday = byWeekday(trades).filter((w) => w.key !== "未知");
+  const weekday = byWeekday(trades).filter((w) => w.key !== tr("未知"));
   const cards = pickMetrics(REGISTRY, cardIds);
   /** 选了账户就把账户名挂到组件标题上，避免"这到底是哪个账户的数" */
   const accountName = snapshot.query.filters.accounts?.[0] ?? "";
@@ -99,7 +100,7 @@ export function Dashboard(props: {
       case "pnlChart":
         return (
           <Section
-            title="累计盈亏"
+            title={tr("累计盈亏")}
             extra={<span className="tj-muted">{scopeLabel}</span>}
             dragHandleProps={drag}
           >
@@ -109,8 +110,8 @@ export function Dashboard(props: {
       case "calendar":
         return (
           <Section
-            title="每日盈亏"
-            extra={<span className="tj-muted">{accountName || "全部账户"}</span>}
+            title={tr("每日盈亏")}
+            extra={<span className="tj-muted">{accountName || tr("全部账户")}</span>}
             dragHandleProps={drag}
           >
             <MonthCalendar
@@ -122,7 +123,7 @@ export function Dashboard(props: {
         );
       case "strategy":
         return (
-          <Section title="策略表现" dragHandleProps={drag}>
+          <Section title={tr("策略表现")} dragHandleProps={drag}>
             <MetricBarList
               items={bySetup}
               cur={cur}
@@ -133,10 +134,10 @@ export function Dashboard(props: {
       case "drawdown":
         return (
           <Section
-            title="回撤"
+            title={tr("回撤")}
             extra={
               <span className="tj-muted">
-                最大 {money(snapshot.metrics.maxDrawdown.value ?? 0, cur)}
+                {tr("最大 {0}", money(snapshot.metrics.maxDrawdown.value ?? 0, cur))}
               </span>
             }
             dragHandleProps={drag}
@@ -147,10 +148,10 @@ export function Dashboard(props: {
       case "ddList":
         return (
           <Section
-            title="回撤记录"
+            title={tr("回撤记录")}
             extra={
               <span className="tj-muted">
-                水下 {((snapshot.metrics.timeUnderwater?.value ?? 0) * 100).toFixed(0)}% 交易日
+                {tr("水下 {0}% 交易日", ((snapshot.metrics.timeUnderwater?.value ?? 0) * 100).toFixed(0))}
               </span>
             }
             dragHandleProps={drag}
@@ -160,7 +161,7 @@ export function Dashboard(props: {
         );
       case "weekday":
         return (
-          <Section title="星期表现" dragHandleProps={drag}>
+          <Section title={tr("星期表现")} dragHandleProps={drag}>
             <BarList
               items={weekday}
               cur={cur}
@@ -177,7 +178,7 @@ export function Dashboard(props: {
         );
       case "symbolPerf":
         return (
-          <Section title="标的表现" dragHandleProps={drag}>
+          <Section title={tr("标的表现")} dragHandleProps={drag}>
             <MetricBarList
               items={bySymbol}
               cur={cur}
@@ -187,13 +188,13 @@ export function Dashboard(props: {
         );
       case "recentTrades":
         return (
-          <Section title="最近交易" dragHandleProps={drag}>
+          <Section title={tr("最近交易")} dragHandleProps={drag}>
             <RecentTrades trades={trades} cur={cur} limit={8} onOpen={onOpen} />
           </Section>
         );
       case "longShort":
         return (
-          <Section title="长短对比" dragHandleProps={drag}>
+          <Section title={tr("长短对比")} dragHandleProps={drag}>
             <div className="tj-split">
               {(["long", "short"] as const).map((dir) => {
                 const list = trades.filter((t) => t.direction === dir);
@@ -203,14 +204,14 @@ export function Dashboard(props: {
                     className={`tj-split-card ${onDrill ? "is-clickable" : ""}`}
                     key={dir}
                     onClick={onDrill ? () => onDrill({ kind: "direction", value: dir }) : undefined}
-                    title={onDrill ? `只看${dir === "long" ? "做多" : "做空"}的交易` : undefined}
+                    title={onDrill ? tr("只看{0}的交易", dir === "long" ? tr("做多") : tr("做空")) : undefined}
                   >
-                    <div className="tj-split-title">{dir === "long" ? "做多" : "做空"}</div>
+                    <div className="tj-split-title">{dir === "long" ? tr("做多") : tr("做空")}</div>
                     <div className={`tj-split-pnl ${toneClass(st.netPnl)}`}>
                       <Money value={st.netPnl} />
                     </div>
                     <div className="tj-split-meta">
-                      {st.count} 笔 · 胜率 {fmtPct(st.winRate, 0)} · 盈亏比{" "}
+                      {tr("{0} 笔 · 胜率 {1} · 盈亏比", st.count, fmtPct(st.winRate, 0))} 
                       {Number.isFinite(st.profitFactor) ? st.profitFactor.toFixed(2) : "∞"}
                     </div>
                     <div className="tj-split-bar">
@@ -220,7 +221,7 @@ export function Dashboard(props: {
                       />
                     </div>
                     <div className="tj-muted tj-small">
-                      平均每笔 {money(st.expectancy, cur)}
+                      {tr("平均每笔 {0}", money(st.expectancy, cur))}
                     </div>
                   </div>
                 );
@@ -263,24 +264,24 @@ export function Dashboard(props: {
             className="tj-metric-config-btn"
             onClick={() => setPanelOpen((v) => !v)}
           >
-            指标卡 {cardIds.length} 项 {panelOpen ? "▴" : "▾"}
+            {tr("指标卡 {0} 项 {1}", cardIds.length, panelOpen ? "▴" : "▾")}
           </button>
           {props.onLayoutChange && (
             <button
               type="button"
               className="tj-metric-config-btn"
               onClick={() => props.onLayoutChange?.(DEFAULT_LAYOUT)}
-              title="把组件顺序和大小恢复成默认"
+              title={tr("把组件顺序和大小恢复成默认")}
             >
-              重置布局
+              {tr("重置布局")}
             </button>
           )}
           {panelOpen && (
             <div className="tj-metric-panel">
               <div className="tj-metric-panel-head">
-                <span>勾选要显示的指标，↑↓ 调整顺序</span>
+                <span>{tr("勾选要显示的指标，↑↓ 调整顺序")}</span>
                 <button type="button" className="tj-link" onClick={() => setCards(DEFAULT_CARDS)}>
-                  恢复默认
+                  {tr("恢复默认")}
                 </button>
               </div>
               {(["performance", "risk", "volume", "average"] as const).map((cat) => (
@@ -296,10 +297,10 @@ export function Dashboard(props: {
                         </label>
                         {on && (
                           <span className="tj-metric-order">
-                            <button type="button" onClick={() => moveCard(def.id, -1)} title="上移">
+                            <button type="button" onClick={() => moveCard(def.id, -1)} title={tr("上移")}>
                               ↑
                             </button>
-                            <button type="button" onClick={() => moveCard(def.id, 1)} title="下移">
+                            <button type="button" onClick={() => moveCard(def.id, 1)} title={tr("下移")}>
                               ↓
                             </button>
                           </span>

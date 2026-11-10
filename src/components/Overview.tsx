@@ -1,3 +1,4 @@
+import { tr } from "../i18n";
 import React, { useMemo } from "react";
 import { DashboardSnapshot } from "../services/aggregate";
 import { REGISTRY, formatMetric, pickMetrics } from "../services/metrics";
@@ -46,8 +47,8 @@ export function Overview(props: {
           <div className="tj-hero-bar-fill" style={{ width: `${progress * 100}%` }} />
           <span className="tj-hero-bar-note">
             {b.ddStats.current > 0
-              ? `距本期高点还差 ${money(b.ddStats.current, cur)}`
-              : "正在本期最高点"}
+              ? tr("距本期高点还差 {0}", money(b.ddStats.current, cur))
+              : tr("正在本期最高点")}
           </span>
         </div>
       </div>
@@ -68,9 +69,9 @@ export function Overview(props: {
         })}
       </div>
 
-      <Section title="结论" extra={<span className="tj-muted">{ins.length} 条</span>}>
+      <Section title={tr("结论")} extra={<span className="tj-muted">{tr("{0} 条", ins.length)}</span>}>
         {ins.length === 0 ? (
-          <div className="tj-chart-empty">数据太少，暂时得不出结论</div>
+          <div className="tj-chart-empty">{tr("数据太少，暂时得不出结论")}</div>
         ) : (
           <ul className="tj-insights">
             {ins.map((i) => (
@@ -87,9 +88,9 @@ export function Overview(props: {
       </Section>
 
       <div className="tj-grid2">
-        <Section title="强项" extra={<span className="tj-muted">至少 2 笔</span>}>
+        <Section title={tr("强项")} extra={<span className="tj-muted">{tr("至少 2 笔")}</span>}>
           {hl.strong.length === 0 ? (
-            <div className="tj-chart-empty">没有稳定赚钱的维度</div>
+            <div className="tj-chart-empty">{tr("没有稳定赚钱的维度")}</div>
           ) : (
             <div className="tj-hl-list">
               {hl.strong.slice(0, 4).map((h) => (
@@ -98,7 +99,7 @@ export function Overview(props: {
                   <span className="tj-hl-key">{h.key}</span>
                   <span className="tj-hl-pnl tj-pos">{money(h.pnl, cur)}</span>
                   <span className="tj-hl-meta">
-                    {h.count} 笔 · 胜率 {(h.winRate * 100).toFixed(0)}%
+                    {tr("{0} 笔 · 胜率 {1}%", h.count, (h.winRate * 100).toFixed(0))}
                   </span>
                 </div>
               ))}
@@ -106,9 +107,9 @@ export function Overview(props: {
           )}
         </Section>
 
-        <Section title="短板" extra={<span className="tj-muted">至少 2 笔</span>}>
+        <Section title={tr("短板")} extra={<span className="tj-muted">{tr("至少 2 笔")}</span>}>
           {hl.weak.length === 0 ? (
-            <div className="tj-chart-empty">没有明显亏钱的维度</div>
+            <div className="tj-chart-empty">{tr("没有明显亏钱的维度")}</div>
           ) : (
             <div className="tj-hl-list">
               {hl.weak.slice(0, 4).map((h) => (
@@ -117,7 +118,7 @@ export function Overview(props: {
                   <span className="tj-hl-key">{h.key}</span>
                   <span className="tj-hl-pnl tj-neg">{money(h.pnl, cur)}</span>
                   <span className="tj-hl-meta">
-                    {h.count} 笔 · 胜率 {(h.winRate * 100).toFixed(0)}%
+                    {tr("{0} 笔 · 胜率 {1}%", h.count, (h.winRate * 100).toFixed(0))}
                   </span>
                 </div>
               ))}

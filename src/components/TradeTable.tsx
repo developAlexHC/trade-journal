@@ -1,3 +1,4 @@
+import { tr } from "../i18n";
 import React, { useEffect, useMemo, useRef, useState } from "react";
 import { Trade } from "../types";
 import { fmtNum, fmtPct, money, toneClass } from "./ui";
@@ -138,7 +139,7 @@ export function TradeTable(props: {
   );
 
   if (!trades.length) {
-    return <div className="tj-chart-empty">这个筛选条件下没有交易</div>;
+    return <div className="tj-chart-empty">{tr("这个筛选条件下没有交易")}</div>;
   }
 
   return (
@@ -153,13 +154,13 @@ export function TradeTable(props: {
               onChange={toggleAll}
               disabled={!rows.length}
             />
-            <span>{allSelected ? "取消全选" : `全选 ${rows.length} 笔`}</span>
+            <span>{allSelected ? tr("取消全选") : tr("全选 {0} 笔", rows.length)}</span>
           </label>
 
           {selectedRows.length > 0 ? (
             <>
               <span className="tj-bulk-count">
-                已选 <b>{selectedRows.length}</b> 笔 · 合计{" "}
+                {tr("已选")} <b>{selectedRows.length}</b> {tr("笔 · 合计")}{" "}
                 <span className={toneClass(selectedRows.reduce((a, b) => a + b.pnl, 0))}>
                   {money(
                     selectedRows.reduce((a, b) => a + b.pnl, 0),
@@ -175,12 +176,12 @@ export function TradeTable(props: {
                     onClick={() => setSetupOpen((v) => !v)}
                     disabled={busy}
                   >
-                    设置策略 {setupOpen ? "▴" : "▾"}
+                    {tr("设置策略 {0}", setupOpen ? "▴" : "▾")}
                   </button>
                   {setupOpen && (
                     <div className="tj-bulk-pop">
                       <div className="tj-bulk-pop-head">
-                        给这 {selectedRows.length} 笔笔记设置策略
+                        {tr("给这 {0} 笔笔记设置策略", selectedRows.length)}
                       </div>
                       {setupOptions.length > 0 && (
                         <div className="tj-bulk-chips">
@@ -201,7 +202,7 @@ export function TradeTable(props: {
                         <input
                           type="text"
                           value={setupValue}
-                          placeholder="输入策略名，如 突破 / 回踩"
+                          placeholder={tr("输入策略名，如 突破 / 回踩")}
                           onChange={(e) => setSetupValue(e.target.value)}
                           onKeyDown={(e) => {
                             if (e.key === "Enter") void applySetup(setupValue);
@@ -215,7 +216,7 @@ export function TradeTable(props: {
                           onClick={() => void applySetup(setupValue)}
                           disabled={!setupValue.trim() || busy}
                         >
-                          应用
+                          {tr("应用")}
                         </button>
                       </div>
                       <button
@@ -224,7 +225,7 @@ export function TradeTable(props: {
                         onClick={() => void applySetup("")}
                         disabled={busy}
                       >
-                        清除这些笔记的策略
+                        {tr("清除这些笔记的策略")}
                       </button>
                     </div>
                   )}
@@ -237,10 +238,10 @@ export function TradeTable(props: {
                 disabled={busy}
               >
                 {busy
-                  ? "处理中…"
+                  ? tr("处理中…")
                   : confirmBulk
-                    ? `再点一次确认删除 ${selectedRows.length} 笔`
-                    : `删除所选 ${selectedRows.length} 笔`}
+                    ? tr("再点一次确认删除 {0} 笔", selectedRows.length)
+                    : tr("删除所选 {0} 笔", selectedRows.length)}
               </button>
               <button
                 type="button"
@@ -250,14 +251,14 @@ export function TradeTable(props: {
                   setConfirmBulk(false);
                 }}
               >
-                取消选择
+                {tr("取消选择")}
               </button>
             </>
           ) : (
             <span className="tj-bulk-hint">
               {onSetSetup
-                ? "勾选左侧方框后可批量设置策略或删除（筛选结果可一次全选）"
-                : "勾选左侧方框可批量删除（筛选结果可一次全选）"}
+                ? tr("勾选左侧方框后可批量设置策略或删除（筛选结果可一次全选）")
+                : tr("勾选左侧方框可批量删除（筛选结果可一次全选）")}
             </span>
           )}
         </div>
@@ -267,16 +268,16 @@ export function TradeTable(props: {
         <thead>
           <tr>
             {canSelect && <th className="tj-check-col" />}
-            {head("date", "日期")}
-            {head("symbol", "标的")}
-            <th>方向</th>
-            {head("quantity", "数量", "tj-num")}
-            <th className="tj-num">开仓</th>
-            <th className="tj-num">平仓</th>
-            <th className="tj-num">手续费</th>
-            {head("pnl", "盈亏", "tj-num")}
-            {head("setup", "策略")}
-            <th>账户</th>
+            {head("date", tr("日期"))}
+            {head("symbol", tr("标的"))}
+            <th>{tr("方向")}</th>
+            {head("quantity", tr("数量"), "tj-num")}
+            <th className="tj-num">{tr("开仓")}</th>
+            <th className="tj-num">{tr("平仓")}</th>
+            <th className="tj-num">{tr("手续费")}</th>
+            {head("pnl", tr("盈亏"), "tj-num")}
+            {head("setup", tr("策略"))}
+            <th>{tr("账户")}</th>
             <th></th>
           </tr>
         </thead>
@@ -294,7 +295,7 @@ export function TradeTable(props: {
                     checked={selected.has(t.id)}
                     onChange={() => toggle(t.id)}
                     onClick={(e) => e.stopPropagation()}
-                    aria-label={`选择 ${t.date} ${t.symbol}`}
+                    aria-label={tr("选择 {0} {1}", t.date, t.symbol)}
                   />
                 </td>
               )}
@@ -305,7 +306,7 @@ export function TradeTable(props: {
               <td className="tj-symbol">{t.symbol}</td>
               <td>
                 <span className={`tj-dir ${t.direction}`}>
-                  {t.direction === "long" ? "多" : "空"}
+                  {t.direction === "long" ? tr("多") : tr("空")}
                 </span>
               </td>
               <td className="tj-num">{fmtNum(t.quantity, t.quantity % 1 === 0 ? 0 : 3)}</td>
@@ -318,7 +319,7 @@ export function TradeTable(props: {
               <td className="tj-actions">
                 {onOpen && (
                   <button type="button" className="tj-link" onClick={() => onOpen(t)}>
-                    打开
+                    {tr("打开")}
                   </button>
                 )}
                 {onDelete && (
@@ -334,7 +335,7 @@ export function TradeTable(props: {
                       }
                     }}
                   >
-                    {confirmId === t.id ? "确认删除" : "删除"}
+                    {confirmId === t.id ? tr("确认删除") : tr("删除")}
                   </button>
                 )}
               </td>
@@ -345,13 +346,13 @@ export function TradeTable(props: {
 
       <div className="tj-table-foot">
         <span className="tj-muted">
-          显示 {visible.length} / {rows.length} 笔
+          {tr("显示 {0} / {1} 笔", visible.length, rows.length)}
         </span>
         <span className={`tj-muted`}>
-          合计 <span className={toneClass(rows.reduce((a, b) => a + b.pnl, 0))}>
+          {tr("合计")} <span className={toneClass(rows.reduce((a, b) => a + b.pnl, 0))}>
             {money(rows.reduce((a, b) => a + b.pnl, 0), cur)}
           </span>
-          {" · "}胜率{" "}
+          {" · "}{tr("胜率")}{" "}
           {fmtPct(
             rows.filter((r) => r.pnl > 0).length /
               Math.max(1, rows.filter((r) => r.pnl !== 0).length)
@@ -359,7 +360,7 @@ export function TradeTable(props: {
         </span>
         {visible.length < rows.length && (
           <button type="button" className="tj-btn" onClick={() => setLimit((l) => l + 120)}>
-            加载更多
+            {tr("加载更多")}
           </button>
         )}
       </div>

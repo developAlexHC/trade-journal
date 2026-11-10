@@ -1,3 +1,4 @@
+import { tr } from "../i18n";
 import { Direction, TradeDraft } from "../types";
 import { BuildResult, normalizeDirection, parseDate, parseNumber } from "./csv";
 
@@ -26,23 +27,24 @@ export interface OrderDetection {
 }
 
 const ALIASES: Record<OrderFieldKey, string[]> = {
-  symbol: ["商品代码", "合约代码", "品种代码", "代码", "标的", "合约", "品种", "symbol", "contract", "instrument", "ticker", "market"],
-  side: ["买/卖", "买卖", "买入/卖出", "方向", "交易方向", "多空", "side", "b/s", "buy/sell", "buysell", "action", "direction"],
-  kind: ["类型", "订单类型", "委托类型", "order type", "type"],
-  qty: ["数量", "委托数量", "手数", "quantity", "qty", "size", "volume", "lots", "contracts"],
-  filled: ["填充数量", "已成交数量", "成交数量", "成交量", "filled", "filled qty", "filledqty", "fill qty", "filledquantity"],
-  price: ["平均成交价", "成交均价", "成交价", "均价", "avg price", "avgprice", "average price", "fill price", "fillprice", "price", "价格"],
-  status: ["状态", "订单状态", "委托状态", "status", "state"],
-  time: ["状态时间", "成交时间", "下单时间", "委托时间", "时间", "日期", "time", "date", "datetime", "timestamp", "filled at", "filledat"],
-  fees: ["手续费", "佣金", "费用", "commission", "fees", "fee", "cost"],
+  symbol: ["商品代码", "合约代码", "品种代码", "代码", "标的", "合约", "品种", "symbol", "contract", "instrument", "ticker", "market", "商品代碼", "合約代碼", "品種代碼", "代碼", "標的", "商品", "商品代號"],
+  side: ["买/卖", "买卖", "买入/卖出", "方向", "交易方向", "多空", "side", "b/s", "buy/sell", "buysell", "action", "direction", "買/賣", "買賣", "買入/賣出", "買賣別"],
+  kind: ["类型", "订单类型", "委托类型", "order type", "type", "類型", "訂單類型", "委託類型", "委託別"],
+  qty: ["数量", "委托数量", "手数", "quantity", "qty", "size", "volume", "lots", "contracts", "數量", "委託數量", "手數", "口數"],
+  filled: ["填充数量", "已成交数量", "成交数量", "成交量", "filled", "filled qty", "filledqty", "fill qty", "filledquantity", "填充數量", "已成交數量", "成交數量", "成交口數"],
+  price: ["平均成交价", "成交均价", "成交价", "均价", "avg price", "avgprice", "average price", "fill price", "fillprice", "price", "价格", "平均成交價", "成交均價", "成交價", "均價", "價格"],
+  status: ["状态", "订单状态", "委托状态", "status", "state", "狀態", "訂單狀態", "委託狀態"],
+  time: ["状态时间", "成交时间", "下单时间", "委托时间", "时间", "日期", "time", "date", "datetime", "timestamp", "filled at", "filledat", "狀態時間", "成交時間", "下單時間", "委託時間", "時間"],
+  fees: ["手续费", "佣金", "费用", "commission", "fees", "fee", "cost", "手續費", "傭金", "費用"],
 };
 
 const FILLED = ["已成交", "全部成交", "完全成交", "成交", "部分成交", "filled", "fully filled", "complete", "completed", "executed", "done", "partial", "partially filled"];
-const DEAD = ["已取消", "取消", "已撤单", "撤单", "已拒绝", "拒绝", "已过期", "过期", "canceled", "cancelled", "rejected", "expired", "void"];
+const DEAD = ["已取消", "取消", "已撤单", "撤单", "已拒绝", "拒绝", "已过期", "过期", "已撤單", "撤單", "已拒絕", "拒絕", "已過期", "過期", "刪單", "已刪單", "canceled", "cancelled", "rejected", "expired", "void"];
 
 /** 真正的「成交时刻」列，优先级高于下单时间 */
 const FILL_TIME = [
   "状态时间", "成交时间", "成交日期", "成交时刻", "填充时间",
+  "狀態時間", "成交時間", "成交時刻", "填充時間",
   "filled at", "filledat", "fill time", "filltime", "execution time", "executed at", "last update",
 ];
 
@@ -222,32 +224,32 @@ export function pairOrders(
       return;
     }
     if (qty <= 0) {
-      errors.push({ row: line, message: `数量为 0（状态：${status || "空"}）` });
+      errors.push({ row: line, message: tr("数量为 0（状态：{0}）", status || tr("（空）")) });
       return;
     }
 
     const symbol = cell(r, "symbol");
     if (!symbol) {
-      errors.push({ row: line, message: "标的为空" });
+      errors.push({ row: line, message: tr("标的为空") });
       return;
     }
 
     const side = normalizeDirection(cell(r, "side"));
     if (!side) {
-      errors.push({ row: line, message: `方向无法识别：${cell(r, "side") || "（空）"}` });
+      errors.push({ row: line, message: tr("方向无法识别：{0}", cell(r, "side") || tr("（空）")) });
       return;
     }
 
     const price = parseNumber(cell(r, "price"));
     if (price === null || price === 0) {
-      errors.push({ row: line, message: `成交价为空：${cell(r, "price") || "（空）"}` });
+      errors.push({ row: line, message: tr("成交价为空：{0}", cell(r, "price") || tr("（空）")) });
       return;
     }
 
     const at = cell(r, "time");
     const { date, time } = parseDate(at);
     if (!date) {
-      errors.push({ row: line, message: `时间无法识别：${at.slice(0, 24) || "（空）"}` });
+      errors.push({ row: line, message: tr("时间无法识别：{0}", at.slice(0, 24) || tr("（空）")) });
       return;
     }
 
@@ -265,7 +267,7 @@ export function pairOrders(
       at: stamp(at, date, time),
       date,
       time,
-      kind: cell(r, "kind") || (side === "long" ? "买入" : "卖出"),
+      kind: cell(r, "kind") || (side === "long" ? tr("买入") : tr("卖出")),
       feePerUnit,
     });
   });
@@ -304,7 +306,7 @@ export function pairOrders(
         stop: null,
         target: null,
         tags: ["trade", "auto-paired"],
-        notes: `自动配对：${lot.kind} → ${f.kind}，持有 ${duration(lot.at, f.at)}`,
+        notes: tr("自动配对：{0} → {1}，持有 {2}", lot.kind, f.kind, duration(lot.at, f.at)),
         source: `pair:${f.symbol}:${lot.at}:${f.at}:${take}`,
       });
       lot.qty -= take;
@@ -369,11 +371,11 @@ function duration(a: string, b: string): string {
   const t2 = Date.parse(b.replace(" ", "T"));
   if (!Number.isFinite(t1) || !Number.isFinite(t2) || t2 < t1) return "—";
   const min = Math.round((t2 - t1) / 60000);
-  if (min < 1) return "不到 1 分钟";
-  if (min < 60) return `${min} 分钟`;
+  if (min < 1) return tr("不到 1 分钟");
+  if (min < 60) return tr("{0} 分钟", min);
   const h = Math.floor(min / 60);
   const m = min % 60;
-  return m ? `${h} 小时 ${m} 分钟` : `${h} 小时`;
+  return m ? tr("{0} 小时 {1} 分钟", h, m) : tr("{0} 小时", h);
 }
 
 /** "YYYY-MM-DD HH:mm:ss" → "HH:mm:ss" */

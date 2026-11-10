@@ -1,3 +1,4 @@
+import { tr } from "../i18n";
 import React, { useMemo, useRef, useState } from "react";
 import { Trade, TradeDraft, tradeKey } from "../types";
 import {
@@ -109,10 +110,10 @@ export function ImportPanel(props: {
   // 必填项缺失时给出明确的诊断，而不是静默失败
   const missing = useMemo(() => {
     const list: string[] = [];
-    if (map.date === undefined) list.push("日期");
-    if (map.symbol === undefined) list.push("标的");
+    if (map.date === undefined) list.push(tr("日期"));
+    if (map.symbol === undefined) list.push(tr("标的"));
     if (map.pnl === undefined && (map.entry === undefined || map.exit === undefined)) {
-      list.push("开仓价 + 平仓价（或者直接映射「盈亏」列）");
+      list.push(tr("开仓价 + 平仓价（或者直接映射「盈亏」列）"));
     }
     return list;
   }, [map]);
@@ -141,12 +142,12 @@ export function ImportPanel(props: {
     setBusy(true);
     try {
       const r = await onImport(drafts);
-      setResult(`已导入 ${r.created} 笔，跳过重复 ${r.skipped} 笔`);
+      setResult(tr("已导入 {0} 笔，跳过重复 {1} 笔", r.created, r.skipped));
       setRaw("");
       setFileName("");
       setOverride(null);
     } catch (e) {
-      setResult(`导入失败：${e instanceof Error ? e.message : String(e)}`);
+      setResult(tr("导入失败：{0}", e instanceof Error ? e.message : String(e)));
     } finally {
       setBusy(false);
     }
@@ -156,10 +157,9 @@ export function ImportPanel(props: {
     <div className="tj-import">
       <div className="tj-import-head">
         <div>
-          <h3>导入交易记录</h3>
+          <h3>{tr("导入交易记录")}</h3>
           <p className="tj-muted">
-            支持两种文件：已经是一笔一回合的成交记录，和只按委托/成交明细导出的订单历史。
-            后者会自动把开平仓配对成回合，不用手动填平仓价。
+            {tr("支持两种文件：已经是一笔一回合的成交记录，和只按委托/成交明细导出的订单历史。后者会自动把开平仓配对成回合，不用手动填平仓价。")}
           </p>
         </div>
         <div className="tj-import-actions">
@@ -174,18 +174,18 @@ export function ImportPanel(props: {
             }}
           />
           <button type="button" className="tj-btn" onClick={() => fileRef.current?.click()}>
-            选择文件
+            {tr("选择文件")}
           </button>
         </div>
       </div>
 
       <div className="tj-account-bar">
         <label className="tj-field">
-          <span>导入到账户</span>
+          <span>{tr("导入到账户")}</span>
           <input
             list="tj-account-options"
             value={account}
-            placeholder="例如 AMP"
+            placeholder={tr("例如 AMP")}
             onChange={(e) => setAccount(e.target.value)}
           />
         </label>
@@ -196,7 +196,7 @@ export function ImportPanel(props: {
         </datalist>
         {accountOptions.length > 0 && (
           <div className="tj-account-quick">
-            <span className="tj-muted tj-small">已有：</span>
+            <span className="tj-muted tj-small">{tr("已有：")}</span>
             {accountOptions.map((a) => (
               <button
                 key={a}
@@ -211,14 +211,14 @@ export function ImportPanel(props: {
         )}
         <span className={`tj-small ${canonicalAccount ? "tj-muted" : "tj-warn-text"}`}>
           {canonicalAccount
-            ? `将写入账户「${canonicalAccount}」，笔记会放进该账户的子目录`
-            : "必填：不同券商 / 账户要分开统计，全靠这个字段"}
+            ? tr("将写入账户「{0}」，笔记会放进该账户的子目录", canonicalAccount)
+            : tr("必填：不同券商 / 账户要分开统计，全靠这个字段")}
         </span>
       </div>
 
       <textarea
         className="tj-textarea"
-        placeholder={`把 CSV 内容粘到这里，例如：\n\n日期,标的,方向,数量,开仓价,平仓价,手续费,策略\n2026-10-09,AAPL,做多,100,228.40,231.10,1.2,突破`}
+        placeholder={tr("把 CSV 内容粘到这里，例如：\n\n日期,标的,方向,数量,开仓价,平仓价,手续费,策略\n2026-10-09,AAPL,做多,100,228.40,231.10,1.2,突破")}
         value={raw}
         onChange={(e) => {
           setRaw(e.target.value);
@@ -229,7 +229,7 @@ export function ImportPanel(props: {
         spellCheck={false}
       />
 
-      {fileName && <div className="tj-muted tj-small">已读取：{fileName}</div>}
+      {fileName && <div className="tj-muted tj-small">{tr("已读取：{0}", fileName)}</div>}
 
       {parsed.length > 1 && (
         <>
@@ -239,19 +239,19 @@ export function ImportPanel(props: {
               className={`tj-mode-btn ${mode === "row" ? "on" : ""}`}
               onClick={() => setModeOverride("row")}
             >
-              每行一回合
+              {tr("每行一回合")}
             </button>
             <button
               type="button"
               className={`tj-mode-btn ${mode === "pair" ? "on" : ""}`}
               onClick={() => setModeOverride("pair")}
             >
-              订单历史自动配对
+              {tr("订单历史自动配对")}
             </button>
             <span className="tj-muted tj-small">
               {orderDet
-                ? "检测到这是委托级导出（每行一个委托），建议用自动配对"
-                : "每行已经是一笔完整的开平，用「每行一回合」"}
+                ? tr("检测到这是委托级导出（每行一个委托），建议用自动配对")
+                : tr("每行已经是一笔完整的开平，用「每行一回合」")}
             </span>
           </div>
 
@@ -259,26 +259,25 @@ export function ImportPanel(props: {
             <div className="tj-pair-box">
               <div className="tj-pair-head">
                 <strong>
-                  {paired.meta.fills} 笔成交 → {paired.meta.trips} 个回合
+                  {tr("{0} 笔成交 → {1} 个回合", paired.meta.fills, paired.meta.trips)}
                 </strong>
                 <span className="tj-muted tj-small">
-                  跳过 {paired.meta.dead} 行未成交/已取消
+                  {tr("跳过 {0} 行未成交/已取消", paired.meta.dead)}
                 </span>
               </div>
               <p className="tj-small tj-muted">
-                按时间 FIFO 配对：卖出先开空、买入平空；反之开多。价差 × 合约每点价值 ×
-                数量算出盈亏，再用手续费列（为空则用下面的每手手续费）扣一次。
+                {tr("按时间 FIFO 配对：卖出先开空、买入平空；反之开多。价差 × 合约每点价值 × 数量算出盈亏，再用手续费列（为空则用下面的每手手续费）扣一次。")}
               </p>
               {paired.meta.unknownSymbols.length > 0 && (
                 <p className="tj-small tj-warn-text">
-                  这些合约认不出每点价值，按 1 计算：{paired.meta.unknownSymbols.join("、")}
+                  {tr("这些合约认不出每点价值，按 1 计算：{0}", paired.meta.unknownSymbols.join("、"))}
                 </p>
               )}
               {paired.meta.open.length > 0 && (
                 <p className="tj-small tj-warn-text">
-                  有未平仓持仓（不会导入）：
+                  {tr("有未平仓持仓（不会导入）：")}
                   {paired.meta.open
-                    .map((o) => `${o.symbol} ${o.side === "long" ? "多" : "空"} ${o.qty} 手`)
+                    .map((o) => tr("{0} {1} {2} 手", o.symbol, o.side === "long" ? tr("多") : tr("空"), o.qty))
                     .join("、")}
                 </p>
               )}
@@ -287,62 +286,61 @@ export function ImportPanel(props: {
 
           <div className="tj-import-summary">
             <div>
-              <strong>{dataRows.length}</strong> 行数据 ·{" "}
+              <strong>{dataRows.length}</strong> {tr("行数据")} ·{" "}
               {mode === "pair" ? (
                 <>
-                  可配对 <strong>{built.drafts.length}</strong> 个回合 · 毛盈亏{" "}
+                  {tr("可配对")} <strong>{built.drafts.length}</strong> {tr("个回合 · 毛盈亏")}{" "}
                   <strong className={toneClass(paired?.meta.gross ?? 0)}>
                     {money(paired?.meta.gross ?? 0, cur)}
                   </strong>
-                  ，手续费 {cur}
+                  {tr("，手续费 {0}", cur)}
                   {(paired?.meta.fees ?? 0).toFixed(2)}
                 </>
               ) : (
                 <>
-                  识别到 <strong>{Object.keys(map).length}</strong> 列
+                  {tr("识别到")} <strong>{Object.keys(map).length}</strong> {tr("列")}
                 </>
               )}
             </div>
             <div className="tj-import-badges">
-              <span className="tj-badge ok">可导入 {built.drafts.length}</span>
-              {dupCount > 0 && <span className="tj-badge warn">重复 {dupCount}</span>}
+              <span className="tj-badge ok">{tr("可导入 {0}", built.drafts.length)}</span>
+              {dupCount > 0 && <span className="tj-badge warn">{tr("重复 {0}", dupCount)}</span>}
               {built.errors.length > 0 && (
-                <span className="tj-badge bad">异常 {built.errors.length}</span>
+                <span className="tj-badge bad">{tr("异常 {0}", built.errors.length)}</span>
               )}
             </div>
           </div>
 
           {built.drafts.length === 0 && (
             <div className="tj-block-error">
-              <strong>没能生成可导入的记录</strong>
+              <strong>{tr("没能生成可导入的记录")}</strong>
               {mode === "pair" ? (
                 <>
                   <p>
-                    没有找到可配对的成交。这份文件里可能没有「已成交」行，或者时间列没识别对。
+                    {tr("没有找到可配对的成交。这份文件里可能没有「已成交」行，或者时间列没识别对。")}
                   </p>
                   <p>
-                    已识别列：
+                    {tr("已识别列：")}
                     {orderDet
                       ? Object.entries(orderDet.map)
                           .map(([k, v]) => `${k}=${header[v]}`)
                           .join("，")
-                      : "无"}
+                      : tr("无")}
                   </p>
                 </>
               ) : missing.length > 0 ? (
                 <>
-                  <p>这几项没有映射上：</p>
+                  <p>{tr("这几项没有映射上：")}</p>
                   <ul>
                     {missing.map((m) => (
                       <li key={m}>{m}</li>
                     ))}
                   </ul>
-                  <p>在下面的「列映射」里手动选一次对应的列就好。</p>
+                  <p>{tr("在下面的「列映射」里手动选一次对应的列就好。")}</p>
                 </>
               ) : (
                 <p>
-                  字段都映射上了，但有 {built.errors.length} 行解析失败。展开下面的
-                  「无法解析」看具体哪一行、什么原因。
+                  {tr("字段都映射上了，但有 {0} 行解析失败。展开下面的「无法解析」看具体哪一行、什么原因。", built.errors.length)}
                 </p>
               )}
             </div>
@@ -366,10 +364,10 @@ export function ImportPanel(props: {
                       setOverride(next);
                     }}
                   >
-                    <option value="">— 不导入 —</option>
+                    <option value="">{tr("— 不导入 —")}</option>
                     {header.map((h, i) => (
                       <option key={i} value={i}>
-                        {h || `第 ${i + 1} 列`}
+                        {h || tr("第 {0} 列", i + 1)}
                       </option>
                     ))}
                   </select>
@@ -385,11 +383,11 @@ export function ImportPanel(props: {
                 checked={feesInPnl}
                 onChange={(e) => setFeesInPnl(e.target.checked)}
               />
-              <span>盈亏列已经扣过手续费（导入时不再重复扣）</span>
+              <span>{tr("盈亏列已经扣过手续费（导入时不再重复扣）")}</span>
             </label>
           ) : (
             <label className="tj-check tj-check-inline">
-              <span>每手手续费（单边）</span>
+              <span>{tr("每手手续费（单边）")}</span>
               <input
                 type="number"
                 step="0.01"
@@ -398,7 +396,7 @@ export function ImportPanel(props: {
                 onChange={(e) => setFeePerSide(Math.max(0, Number(e.target.value) || 0))}
               />
               <span className="tj-muted tj-small">
-                成交行里没有手续费时用这个估算；AMP 的 MNQ 约 0.7/手/边
+                {tr("成交行里没有手续费时用这个估算；AMP 的 MNQ 约 0.7/手/边")}
               </span>
             </label>
           )}
@@ -408,14 +406,14 @@ export function ImportPanel(props: {
               <table className="tj-table">
                 <thead>
                   <tr>
-                    <th>日期</th>
-                    <th>标的</th>
-                    <th>方向</th>
-                    <th className="tj-num">数量</th>
-                    <th className="tj-num">开仓</th>
-                    <th className="tj-num">平仓</th>
-                    <th className="tj-num">盈亏</th>
-                    <th>策略</th>
+                    <th>{tr("日期")}</th>
+                    <th>{tr("标的")}</th>
+                    <th>{tr("方向")}</th>
+                    <th className="tj-num">{tr("数量")}</th>
+                    <th className="tj-num">{tr("开仓")}</th>
+                    <th className="tj-num">{tr("平仓")}</th>
+                    <th className="tj-num">{tr("盈亏")}</th>
+                    <th>{tr("策略")}</th>
                   </tr>
                 </thead>
                 <tbody>
@@ -427,7 +425,7 @@ export function ImportPanel(props: {
                       <td className="tj-symbol">{d.symbol}</td>
                       <td>
                         <span className={`tj-dir ${d.direction}`}>
-                          {d.direction === "long" ? "多" : "空"}
+                          {d.direction === "long" ? tr("多") : tr("空")}
                         </span>
                       </td>
                       <td className="tj-num">{px(d.quantity)}</td>
@@ -440,23 +438,23 @@ export function ImportPanel(props: {
                 </tbody>
               </table>
               {built.drafts.length > 8 && (
-                <div className="tj-muted tj-small">…还有 {built.drafts.length - 8} 笔</div>
+                <div className="tj-muted tj-small">{tr("…还有 {0} 笔", built.drafts.length - 8)}</div>
               )}
             </div>
           )}
 
           {built.errors.length > 0 && (
             <details className="tj-errors" open={built.drafts.length === 0}>
-              <summary>有 {built.errors.length} 行无法解析</summary>
+              <summary>{tr("有 {0} 行无法解析", built.errors.length)}</summary>
               <ul>
                 {built.errors.slice(0, 10).map((e) => (
                   <li key={e.row}>
-                    第 {e.row} 行：{e.message}
+                    {tr("第 {0} 行：{1}", e.row, e.message)}
                   </li>
                 ))}
               </ul>
               {built.errors.length > 10 && (
-                <p className="tj-small">…还有 {built.errors.length - 10} 行</p>
+                <p className="tj-small">{tr("…还有 {0} 行", built.errors.length - 10)}</p>
               )}
             </details>
           )}
@@ -467,13 +465,13 @@ export function ImportPanel(props: {
               className="tj-btn primary"
               disabled={!built.drafts.length || busy || !canonicalAccount}
               onClick={() => void doImport()}
-              title={!canonicalAccount ? "先在上面填一个账户名" : undefined}
+              title={!canonicalAccount ? tr("先在上面填一个账户名") : undefined}
             >
               {busy
-                ? "写入中…"
+                ? tr("写入中…")
                 : !canonicalAccount
-                  ? "先填账户名"
-                  : `导入 ${built.drafts.length} 笔`}
+                  ? tr("先填账户名")
+                  : tr("导入 {0} 笔", built.drafts.length)}
             </button>
             {result && <span className="tj-import-result">{result}</span>}
           </div>
@@ -482,13 +480,9 @@ export function ImportPanel(props: {
 
       {!parsed.length && (
         <div className="tj-hint">
-          支持的列名（中英文都认）：日期 / date、标的 / symbol、方向 / side、数量 / qty、
-          开仓价 / entry、平仓价 / exit、盈亏 / pnl、手续费 / fees、策略 / setup。
-          CSV 里如果有账户列，会被顶部填的账户覆盖。
-          没有盈亏列时，会用开平仓价 × 数量自动算，并扣掉手续费。
+          {tr("支持的列名（中英文都认）：日期 / date、标的 / symbol、方向 / side、数量 / qty、开仓价 / entry、平仓价 / exit、盈亏 / pnl、手续费 / fees、策略 / setup。CSV 里如果有账户列，会被顶部填的账户覆盖。没有盈亏列时，会用开平仓价 × 数量自动算，并扣掉手续费。")}
           <br />
-          订单历史（含「买/卖、类型、填充数量、平均成交价、状态」这类列）也能直接导入：
-          会自动过滤掉已取消/未成交的委托，按 FIFO 把成交配对成回合。
+          {tr("订单历史（含「买/卖、类型、填充数量、平均成交价、状态」这类列）也能直接导入：会自动过滤掉已取消/未成交的委托，按 FIFO 把成交配对成回合。")}
         </div>
       )}
     </div>

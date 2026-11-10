@@ -1,3 +1,4 @@
+import { tr } from "../i18n";
 import { Direction, TradeDraft } from "../types";
 
 export type FieldKey =
@@ -19,43 +20,43 @@ export type FieldKey =
   | "notes";
 
 export const FIELD_LABELS: Record<FieldKey, string> = {
-  date: "日期",
-  time: "时间",
-  exitTime: "平仓时间",
-  symbol: "标的",
-  direction: "方向",
-  quantity: "数量",
-  entry: "开仓价",
-  exit: "平仓价",
-  pnl: "盈亏",
-  fees: "手续费",
-  fees2: "手续费（附加）",
-  setup: "策略",
-  account: "账户",
-  stop: "止损",
-  target: "止盈",
-  notes: "备注",
+  get date() { return tr("日期"); },
+  get time() { return tr("时间"); },
+  get exitTime() { return tr("平仓时间"); },
+  get symbol() { return tr("标的"); },
+  get direction() { return tr("方向"); },
+  get quantity() { return tr("数量"); },
+  get entry() { return tr("开仓价"); },
+  get exit() { return tr("平仓价"); },
+  get pnl() { return tr("盈亏"); },
+  get fees() { return tr("手续费"); },
+  get fees2() { return tr("手续费（附加）"); },
+  get setup() { return tr("策略"); },
+  get account() { return tr("账户"); },
+  get stop() { return tr("止损"); },
+  get target() { return tr("止盈"); },
+  get notes() { return tr("备注"); },
 };
 
 const ALIASES: Record<FieldKey, string[]> = {
-  date: ["date", "日期", "trade date", "trade_date", "entry date", "open date", "opened", "opened at", "openedat", "entered", "enteredat", "entered at", "exit date", "closed at", "close date", "close time", "date/time", "datetime", "time", "日期时间", "开仓时间", "平仓时间", "entry time", "open time", "exit time", "trade day", "trade_day", "tradeday"],
-  time: ["time", "时间", "clock", "hour", "entry time", "开仓时间"],
+  date: ["date", "日期", "trade date", "trade_date", "entry date", "open date", "opened", "opened at", "openedat", "entered", "enteredat", "entered at", "exit date", "closed at", "close date", "close time", "date/time", "datetime", "time", "日期时间", "开仓时间", "平仓时间", "entry time", "open time", "exit time", "trade day", "trade_day", "tradeday", "日期時間", "開倉時間", "平倉時間", "成交日期", "交易日期"],
+  time: ["time", "时间", "clock", "hour", "entry time", "开仓时间", "時間", "開倉時間"],
   // 只取时刻，用于算持仓时长；整列是日期时间也认
-  exitTime: ["exited at", "exitedat", "exit time", "exit datetime", "closed at", "close time", "exit date", "平仓时间", "出场时间", "平仓日期时间"],
-  symbol: ["symbol", "ticker", "instrument", "contract", "market", "pair", "代码", "标的", "品种", "合约", "股票"],
-  direction: ["direction", "side", "type", "action", "position", "long/short", "b/s", "方向", "多空", "买卖", "交易方向"],
-  quantity: ["quantity", "qty", "size", "shares", "volume", "contracts", "lots", "units", "数量", "手数", "股数", "成交量"],
-  entry: ["entry", "entry price", "entry_price", "open price", "open_price", "avg entry", "buy price", "price in", "开仓价", "买入价", "建仓价", "开仓均价"],
-  exit: ["exit", "exit price", "exit_price", "close price", "close_price", "avg exit", "sell price", "price out", "平仓价", "卖出价", "出场价", "平仓均价"],
-  pnl: ["pnl", "p&l", "p/l", "profit", "profit/loss", "net pnl", "net profit", "realized pnl", "realized p&l", "gross pnl", "gain", "盈亏", "净盈亏", "收益", "盈亏金额", "利润"],
-  fees: ["fees", "fee", "commission", "commission fee", "cost", "costs", "total fees", "手续费", "佣金", "费用"],
+  exitTime: ["exited at", "exitedat", "exit time", "exit datetime", "closed at", "close time", "exit date", "平仓时间", "出场时间", "平仓日期时间", "平倉時間", "出場時間", "平倉日期時間"],
+  symbol: ["symbol", "ticker", "instrument", "contract", "market", "pair", "代码", "标的", "品种", "合约", "股票", "代碼", "標的", "品種", "合約", "商品", "股票代號", "商品代號"],
+  direction: ["direction", "side", "type", "action", "position", "long/short", "b/s", "方向", "多空", "买卖", "交易方向", "買賣", "買賣別"],
+  quantity: ["quantity", "qty", "size", "shares", "volume", "contracts", "lots", "units", "数量", "手数", "股数", "成交量", "數量", "手數", "口數", "股數", "成交數量"],
+  entry: ["entry", "entry price", "entry_price", "open price", "open_price", "avg entry", "buy price", "price in", "开仓价", "买入价", "建仓价", "开仓均价", "開倉價", "買入價", "建倉價", "開倉均價", "進場價"],
+  exit: ["exit", "exit price", "exit_price", "close price", "close_price", "avg exit", "sell price", "price out", "平仓价", "卖出价", "出场价", "平仓均价", "平倉價", "賣出價", "出場價", "平倉均價"],
+  pnl: ["pnl", "p&l", "p/l", "profit", "profit/loss", "net pnl", "net profit", "realized pnl", "realized p&l", "gross pnl", "gain", "盈亏", "净盈亏", "收益", "盈亏金额", "利润", "損益", "盈虧", "淨損益", "淨盈虧", "損益金額", "盈虧金額", "利潤", "已實現損益"],
+  fees: ["fees", "fee", "commission", "commission fee", "cost", "costs", "total fees", "手续费", "佣金", "费用", "手續費", "傭金", "費用"],
   // 券商导出的两段费用：Tradovate 的 Fees（交易所/监管）与 Commissions（佣金）要相加
-  fees2: ["commissions", "commission total", "brokerage", "交易佣金", "券商佣金"],
-  setup: ["setup", "strategy", "playbook", "system", "pattern", "setup name", "策略", "战法", "玩法", "交易系统"],
-  account: ["account", "acct", "account name", "portfolio", "account number", "账户", "账号", "子账户"],
-  stop: ["stop", "stop loss", "stop_loss", "sl", "止损", "止损价"],
-  target: ["target", "take profit", "take_profit", "tp", "止盈", "止盈价"],
-  notes: ["notes", "note", "comment", "comments", "remarks", "memo", "description", "备注", "说明", "笔记"],
+  fees2: ["commissions", "commission total", "brokerage", "交易佣金", "券商佣金", "交易傭金", "券商傭金", "交易稅"],
+  setup: ["setup", "strategy", "playbook", "system", "pattern", "setup name", "策略", "战法", "玩法", "交易系统", "戰法", "交易系統"],
+  account: ["account", "acct", "account name", "portfolio", "account number", "账户", "账号", "子账户", "帳戶", "賬戶", "帳號", "賬號", "子帳戶"],
+  stop: ["stop", "stop loss", "stop_loss", "sl", "止损", "止损价", "停損", "停損價", "止損價"],
+  target: ["target", "take profit", "take_profit", "tp", "止盈", "止盈价", "停利", "停利價", "止盈價"],
+  notes: ["notes", "note", "comment", "comments", "remarks", "memo", "description", "备注", "说明", "笔记", "備註", "說明", "筆記"],
 };
 
 function normHeader(h: string): string {
@@ -199,8 +200,8 @@ export function normalizeDirection(raw: string | undefined): Direction | null {
   if (!raw) return null;
   const v = raw.trim().toLowerCase();
   if (!v) return null;
-  if (/(long|buy|bought|^b$|^l$|做多|多|买入|买|看多)/.test(v)) return "long";
-  if (/(short|sell|sold|^s$|做空|空|卖出|卖|看空)/.test(v)) return "short";
+  if (/(long|buy|bought|^b$|^l$|做多|多|买入|买|看多|買進|買入|買)/.test(v)) return "long";
+  if (/(short|sell|sold|^s$|做空|空|卖出|卖|看空|賣出|賣)/.test(v)) return "short";
   return null;
 }
 
@@ -288,7 +289,7 @@ export function buildDrafts(
     if (!symbol) {
       errors.push({
         row: line,
-        message: map.symbol === undefined ? "没有映射「标的」列" : "标的为空",
+        message: map.symbol === undefined ? tr("没有映射「标的」列") : tr("标的为空"),
       });
       return;
     }
@@ -303,8 +304,8 @@ export function buildDrafts(
         row: line,
         message:
           map.date === undefined
-            ? "没有映射「日期」列"
-            : `日期无法识别：${(rawDate ?? "").slice(0, 24) || "（空）"}`,
+            ? tr("没有映射「日期」列")
+            : tr("日期无法识别：{0}", (rawDate ?? "").slice(0, 24) || tr("（空）")),
       });
       return;
     }
@@ -340,8 +341,8 @@ export function buildDrafts(
         row: line,
         message:
           map.pnl === undefined && map.entry === undefined && map.exit === undefined
-            ? "「盈亏」和「开仓价 / 平仓价」都没映射"
-            : "这一行既没有价格也没有盈亏",
+            ? tr("「盈亏」和「开仓价 / 平仓价」都没映射")
+            : tr("这一行既没有价格也没有盈亏"),
       });
       return;
     }

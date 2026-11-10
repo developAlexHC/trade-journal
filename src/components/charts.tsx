@@ -1,3 +1,4 @@
+import { monthShort, monthYear, tr } from "../i18n";
 import React, { useMemo, useState } from "react";
 import {
   CurvePoint,
@@ -63,7 +64,7 @@ export function EquityCurve(props: {
   }, [points]);
 
   if (!points.length) {
-    return <div className="tj-chart-empty">还没有交易数据</div>;
+    return <div className="tj-chart-empty">{tr("还没有交易数据")}</div>;
   }
 
   const active = hover !== null ? coords[hover] : null;
@@ -96,7 +97,7 @@ export function EquityCurve(props: {
           fontSize="9.5"
           opacity="0.8"
         >
-          高 {max.toFixed(0)}
+          {tr("高 {0}", max.toFixed(0))}
         </text>
         <text
           x={padL + 2}
@@ -105,7 +106,7 @@ export function EquityCurve(props: {
           fontSize="9.5"
           opacity="0.8"
         >
-          低 {min.toFixed(0)}
+          {tr("低 {0}", min.toFixed(0))}
         </text>
 
         {[0, 0.25, 0.5, 0.75, 1].map((r) => {
@@ -152,14 +153,14 @@ export function EquityCurve(props: {
       <div className="tj-chart-foot">
         <span>
           {active
-            ? `${active.p.date} · 第 ${active.p.index} 笔 · ${money(active.p.pnl, cur)}`
-            : `共 ${points.length} 笔`}
-          {active && onPick && <span className="tj-chart-hint"> · 点击打开</span>}
+            ? tr("{0} · 第 {1} 笔 · {2}", active.p.date, active.p.index, money(active.p.pnl, cur))
+            : tr("共 {0} 笔", points.length)}
+          {active && onPick && <span className="tj-chart-hint"> {tr("· 点击打开")}</span>}
         </span>
         <span className={toneClass(last.equity)}>
           {active
-            ? `累计 ${money(active.p.equity, cur)}`
-            : `最终 ${money(last.equity, cur)}`}
+            ? tr("累计 {0}", money(active.p.equity, cur))
+            : tr("最终 {0}", money(last.equity, cur))}
         </span>
       </div>
 
@@ -180,7 +181,7 @@ export function BarList(props: {
   onPick?: (key: string) => void;
 }) {
   const { items, cur, onPick } = props;
-  if (!items.length) return <div className="tj-chart-empty">暂无分组数据</div>;
+  if (!items.length) return <div className="tj-chart-empty">{tr("暂无分组数据")}</div>;
   const maxAbs =
     props.max ?? Math.max(...items.map((i) => Math.abs(i.pnl)), 1);
 
@@ -194,7 +195,7 @@ export function BarList(props: {
             className={`tj-bar-row ${onPick ? "is-clickable" : ""}`}
             key={it.key}
             onClick={onPick ? () => onPick(it.key) : undefined}
-            title={onPick ? `按 ${it.key} 查看交易` : undefined}
+            title={onPick ? tr("按 {0} 查看交易", it.key) : undefined}
           >
             <div className="tj-bar-label" title={it.key}>
               {it.key}
@@ -213,7 +214,7 @@ export function BarList(props: {
               {money(it.pnl, cur)}
             </div>
             <div className="tj-bar-meta">
-              {it.count} 笔 · {fmtPct(it.winRate, 0)}
+              {tr("{0} 笔 · {1}", it.count, fmtPct(it.winRate, 0))}
             </div>
           </div>
         );
@@ -263,7 +264,7 @@ export function DayHeatmap(props: { days: DayPnl[]; weeks?: number }) {
         });
         if (r === 0 && cursor.getMonth() !== lastMonth) {
           lastMonth = cursor.getMonth();
-          labels.push({ col, text: `${cursor.getMonth() + 1}月` });
+          labels.push({ col, text: monthShort(cursor.getMonth() + 1) });
         }
         cursor.setDate(cursor.getDate() + 1);
       }
@@ -273,7 +274,7 @@ export function DayHeatmap(props: { days: DayPnl[]; weeks?: number }) {
   }, [days, weeks]);
 
   if (!days.length) {
-    return <div className="tj-chart-empty">还没有交易数据</div>;
+    return <div className="tj-chart-empty">{tr("还没有交易数据")}</div>;
   }
 
   return (
@@ -293,19 +294,19 @@ export function DayHeatmap(props: { days: DayPnl[]; weeks?: number }) {
             title={
               c.pnl === null
                 ? c.date
-                : `${c.date}｜${c.pnl > 0 ? "+" : ""}${c.pnl.toFixed(2)}｜${c.count} 笔`
+                : tr("{0}｜{1}{2}｜{3} 笔", c.date, c.pnl > 0 ? "+" : "", c.pnl.toFixed(2), c.count)
             }
           />
         ))}
       </div>
       <div className="tj-heatmap-legend">
-        <span>亏</span>
+        <span>{tr("亏")}</span>
         <i className="is-neg lv4" />
         <i className="is-neg lv2" />
         <i className="is-empty" />
         <i className="is-pos lv2" />
         <i className="is-pos lv4" />
-        <span>盈</span>
+        <span>{tr("盈")}</span>
       </div>
     </div>
   );
@@ -347,7 +348,7 @@ export function DrawdownChart(props: {
     return { path: line, area: areaPath, coords: cs, maxDd: lo, min: lo };
   }, [series]);
 
-  if (!series.length) return <div className="tj-chart-empty">还没有交易数据</div>;
+  if (!series.length) return <div className="tj-chart-empty">{tr("还没有交易数据")}</div>;
 
   const active = hover !== null ? coords[hover] : null;
   const onMove = (e: React.MouseEvent<SVGSVGElement>) => {
@@ -405,11 +406,11 @@ export function DrawdownChart(props: {
 
       <div className="tj-chart-foot">
         <span>
-          {active ? `${active.p.date} · 第 ${active.p.index} 笔` : `最深 ${money(maxDd, cur)}`}
-          {active && onPick && <span className="tj-chart-hint"> · 点击打开</span>}
+          {active ? tr("{0} · 第 {1} 笔", active.p.date, active.p.index) : tr("最深 {0}", money(maxDd, cur))}
+          {active && onPick && <span className="tj-chart-hint"> {tr("· 点击打开")}</span>}
         </span>
         <span className={active ? toneClass(active.p.dd) : "tj-neg"}>
-          {active ? `回撤 ${money(active.p.dd, cur)}` : `当前水下 ${money(series[series.length - 1].dd, cur)}`}
+          {active ? tr("回撤 {0}", money(active.p.dd, cur)) : tr("当前水下 {0}", money(series[series.length - 1].dd, cur))}
         </span>
       </div>
     </div>
@@ -417,7 +418,7 @@ export function DrawdownChart(props: {
 }
 
 /* ============ 月历：每日盈亏 + 笔数 + 周次 ============ */
-const WEEK_LABELS = ["一", "二", "三", "四", "五", "六", "日"];
+const WEEK_LABELS = () => [tr("一"), tr("二"), tr("三"), tr("四"), tr("五"), tr("六"), tr("日")];
 
 /** 轴标签：大数用 k 缩写，避免在窄图里被裁掉 */
 function fmtAxis(v: number): string {
@@ -487,15 +488,15 @@ export function MonthCalendar(props: {
     <div className="tj-cal">
       <div className="tj-cal-head">
         <div className="tj-cal-title">
-          {y} 年 {m} 月
+          {monthYear(y, m)}
           <span className="tj-cal-quarter">Q{quarter}</span>
           <span className="tj-cal-week">W{isoWeek(first)}</span>
         </div>
         <div className="tj-cal-nav">
-          <button type="button" onClick={() => shift(-1)} title="上个月">
+          <button type="button" onClick={() => shift(-1)} title={tr("上个月")}>
             ‹
           </button>
-          <button type="button" onClick={() => shift(1)} title="下个月">
+          <button type="button" onClick={() => shift(1)} title={tr("下个月")}>
             ›
           </button>
         </div>
@@ -503,7 +504,7 @@ export function MonthCalendar(props: {
 
       <div className="tj-cal-grid">
         <div className="tj-cal-corner" />
-        {WEEK_LABELS.map((w) => (
+        {WEEK_LABELS().map((w) => (
           <div className="tj-cal-weekday" key={w}>
             {w}
           </div>
@@ -538,7 +539,7 @@ export function MonthCalendar(props: {
                     }
                     onClick={hit && onPick ? () => onPick(date) : undefined}
                     title={
-                      hit ? `${date}｜${money(hit.pnl, cur)}｜${hit.count} 笔` : inMonth ? date : ""
+                      hit ? tr("{0}｜{1}｜{2} 笔", date, money(hit.pnl, cur), hit.count) : inMonth ? date : ""
                     }
                   >
                     {inMonth && (
@@ -550,7 +551,7 @@ export function MonthCalendar(props: {
                             {Math.abs(hit.pnl) >= 1000
                               ? `${(hit.pnl / 1000).toFixed(1)}k`
                               : hit.pnl.toFixed(0)}
-                            <em>{hit.count} 笔</em>
+                            <em>{tr("{0} 笔", hit.count)}</em>
                           </span>
                         )}
                       </>
@@ -564,7 +565,7 @@ export function MonthCalendar(props: {
       </div>
 
       <div className="tj-cal-foot">
-        <span>本月 {monthCount} 笔</span>
+        <span>{tr("本月 {0} 笔", monthCount)}</span>
         <span className={toneClass(monthPnl)}>{money(monthPnl, cur)}</span>
       </div>
 
@@ -577,11 +578,11 @@ export function MonthCalendar(props: {
               type="button"
               className={`tj-cal-month ${s.month === month ? "is-on" : ""}`}
               onClick={() => setMonth(s.month)}
-              title={`${s.month}｜${s.count} 笔｜${money(s.pnl, cur)}`}
+              title={tr("{0}｜{1} 笔｜{2}", s.month, s.count, money(s.pnl, cur))}
             >
               <span className="tj-cal-month-name">
                 {s.month.slice(0, 4) === String(y) ? "" : `${s.month.slice(2, 4)}/`}
-                {Number(s.month.slice(5))}月
+                {monthShort(Number(s.month.slice(5)))}
               </span>
               <span className={`tj-cal-month-pnl ${toneClass(s.pnl)}`}>
                 {s.pnl > 0 ? "+" : ""}
@@ -599,9 +600,9 @@ export function MonthCalendar(props: {
 export type BarMetric = "pnl" | "winRate" | "count";
 
 const BAR_METRIC_LABELS: Record<BarMetric, string> = {
-  pnl: "盈亏",
-  winRate: "胜率",
-  count: "笔数",
+  get pnl() { return tr("盈亏"); },
+  get winRate() { return tr("胜率"); },
+  get count() { return tr("笔数"); },
 };
 
 export function MetricBarList(props: {
@@ -625,7 +626,7 @@ export function MetricBarList(props: {
     return list.slice(0, limit);
   }, [items, metric, limit]);
 
-  if (!items.length) return <div className="tj-chart-empty">暂无分组数据</div>;
+  if (!items.length) return <div className="tj-chart-empty">{tr("暂无分组数据")}</div>;
 
   const raw = (s: GroupStat) => (metric === "pnl" ? s.pnl : metric === "winRate" ? s.winRate : s.count);
   const maxAbs = Math.max(...sorted.map((s) => Math.abs(raw(s))), metric === "winRate" ? 0.01 : 1);
@@ -633,7 +634,7 @@ export function MetricBarList(props: {
   const label = (s: GroupStat) => {
     if (metric === "pnl") return money(s.pnl, cur);
     if (metric === "winRate") return fmtPct(s.winRate, 0);
-    return `${s.count} 笔`;
+    return tr("{0} 笔", s.count);
   };
 
   return (
@@ -660,11 +661,11 @@ export function MetricBarList(props: {
           <div
             className={`tj-metric-row ${onPick ? "is-clickable" : ""}`}
             key={s.key}
-            onClick={onPick && s.key && s.key !== "未分类" ? () => onPick(s.key) : undefined}
-            title={onPick ? `按 ${s.key || "未分类"} 查看交易` : undefined}
+            onClick={onPick && s.key && s.key !== tr("未分类") ? () => onPick(s.key) : undefined}
+            title={onPick ? tr("按 {0} 查看交易", s.key || tr("未分类")) : undefined}
           >
             <div className="tj-metric-name" title={s.key}>
-              {s.key || "未分类"}
+              {s.key || tr("未分类")}
             </div>
             <div className="tj-metric-track">
               <div
@@ -698,16 +699,16 @@ export function RecentTrades(props: {
     [trades, limit]
   );
 
-  if (!rows.length) return <div className="tj-chart-empty">还没有交易数据</div>;
+  if (!rows.length) return <div className="tj-chart-empty">{tr("还没有交易数据")}</div>;
 
   return (
     <table className="tj-recent">
       <thead>
         <tr>
-          <th>日期</th>
-          <th>标的</th>
-          <th>方向</th>
-          <th className="tj-num">盈亏</th>
+          <th>{tr("日期")}</th>
+          <th>{tr("标的")}</th>
+          <th>{tr("方向")}</th>
+          <th className="tj-num">{tr("盈亏")}</th>
         </tr>
       </thead>
       <tbody>
@@ -724,7 +725,7 @@ export function RecentTrades(props: {
             <td className="tj-recent-sym">{t.symbol.replace(/^F\.US\./, "")}</td>
             <td>
               <span className={`tj-dir ${t.direction === "long" ? "is-long" : "is-short"}`}>
-                {t.direction === "long" ? "做多" : "做空"}
+                {t.direction === "long" ? tr("做多") : tr("做空")}
               </span>
             </td>
             <td className={`tj-num ${toneClass(t.pnl)}`}>{money(t.pnl, cur)}</td>
@@ -749,16 +750,16 @@ export function DrawdownTable(props: {
     [all, limit]
   );
 
-  if (!episodes.length) return <div className="tj-chart-empty">这段时间没有回撤</div>;
+  if (!episodes.length) return <div className="tj-chart-empty">{tr("这段时间没有回撤")}</div>;
 
   return (
     <div className="tj-ddtable">
       <div className="tj-dd-head">
-        <span>幅度</span>
-        <span>高 → 谷</span>
-        <span className="tj-num">下行</span>
-        <span className="tj-num">恢复</span>
-        <span>状态</span>
+        <span>{tr("幅度")}</span>
+        <span>{tr("高 → 谷")}</span>
+        <span className="tj-num">{tr("下行")}</span>
+        <span className="tj-num">{tr("恢复")}</span>
+        <span>{tr("状态")}</span>
       </div>
       {episodes.map((e) => (
         <div className="tj-dd-row" key={e.peakDate + e.troughDate + e.depth}>
@@ -766,19 +767,19 @@ export function DrawdownTable(props: {
           <span className="tj-dd-span">
             {e.peakDate.slice(5)}→{e.troughDate.slice(5)}
           </span>
-          <span className="tj-num">{e.downDays} 天</span>
+          <span className="tj-num">{tr("{0} 天", e.downDays)}</span>
           <span className="tj-num">
-            {e.recoveryDays === null ? "—" : `${e.recoveryDays} 天`}
+            {e.recoveryDays === null ? "—" : tr("{0} 天", e.recoveryDays)}
           </span>
           <span>
             <span className={`tj-dd-tag ${e.recovered ? "is-ok" : "is-live"}`}>
-              {e.recovered ? "已收复" : "进行中"}
+              {e.recovered ? tr("已收复") : tr("进行中")}
             </span>
           </span>
         </div>
       ))}
       <div className="tj-dd-foot">
-        按深度排序，共 {all.length} 段回撤
+        {tr("按深度排序，共 {0} 段回撤", all.length)}
       </div>
     </div>
   );

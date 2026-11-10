@@ -1,3 +1,4 @@
+import { monthYear, tr } from "../i18n";
 import { Direction, Session, Trade } from "../types";
 import { GapKind, hasGap } from "./quality";
 
@@ -51,14 +52,14 @@ export interface DashboardQuery {
 }
 
 export const PRESET_LABELS: Record<Preset, string> = {
-  today: "今天",
-  yesterday: "昨天",
-  week: "本周",
-  month: "本月",
-  quarter: "本季度",
-  year: "今年",
-  all: "全部时间",
-  custom: "自定义",
+  get today() { return tr("今天"); },
+  get yesterday() { return tr("昨天"); },
+  get week() { return tr("本周"); },
+  get month() { return tr("本月"); },
+  get quarter() { return tr("本季度"); },
+  get year() { return tr("今年"); },
+  get all() { return tr("全部时间"); },
+  get custom() { return tr("自定义"); },
 };
 
 export function emptyQuery(preset: Preset = "all"): DashboardQuery {
@@ -200,16 +201,16 @@ export function prevRange(q: DashboardQuery, range: DateRange | null): DateRange
 
 /** 给人看的区间描述 */
 export function rangeLabel(q: DashboardQuery, range: DateRange | null): string {
-  if (!range) return "全部时间";
+  if (!range) return tr("全部时间");
   const f = parseISO(range.from);
   const t = parseISO(range.to);
   if (!f || !t) return `${range.from} → ${range.to}`;
 
-  if (q.preset === "today") return `今天 · ${range.from}`;
-  if (q.preset === "yesterday") return `昨天 · ${range.from}`;
-  if (q.preset === "month") return `${f.getFullYear()} 年 ${f.getMonth() + 1} 月`;
-  if (q.preset === "quarter") return `${f.getFullYear()} 年 Q${Math.floor(f.getMonth() / 3) + 1}`;
-  if (q.preset === "year") return `${f.getFullYear()} 年`;
+  if (q.preset === "today") return tr("今天 · {0}", range.from);
+  if (q.preset === "yesterday") return tr("昨天 · {0}", range.from);
+  if (q.preset === "month") return monthYear(f.getFullYear(), f.getMonth() + 1);
+  if (q.preset === "quarter") return tr("{0} 年 Q{1}", f.getFullYear(), Math.floor(f.getMonth() / 3) + 1);
+  if (q.preset === "year") return tr("{0} 年", f.getFullYear());
   if (q.preset === "week") return `${range.from} → ${range.to}`;
   return `${range.from} → ${range.to}`;
 }
@@ -277,11 +278,11 @@ export type Drill =
   | { kind: "direction"; value: Direction }
   | { kind: "weekday"; value: number };
 
-const WEEKDAY_NAMES = ["周日", "周一", "周二", "周三", "周四", "周五", "周六"];
+const WEEKDAY_NAMES = () => [tr("周日"), tr("周一"), tr("周二"), tr("周三"), tr("周四"), tr("周五"), tr("周六")];
 
 /** 星期名（周一…）→ 0..6，认不出返回 -1 */
 export function weekdayIndex(label: string): number {
-  return WEEKDAY_NAMES.indexOf(label.trim());
+  return WEEKDAY_NAMES().indexOf(label.trim());
 }
 
 export function drillLabel(d: Drill): string {
@@ -289,13 +290,13 @@ export function drillLabel(d: Drill): string {
     case "date":
       return d.date;
     case "symbol":
-      return `标的 ${d.value}`;
+      return tr("标的 {0}", d.value);
     case "setup":
-      return `策略 ${d.value}`;
+      return tr("策略 {0}", d.value);
     case "direction":
-      return d.value === "long" ? "做多" : "做空";
+      return d.value === "long" ? tr("做多") : tr("做空");
     case "weekday":
-      return WEEKDAY_NAMES[d.value] ?? "未知";
+      return WEEKDAY_NAMES()[d.value] ?? tr("未知");
   }
 }
 
@@ -330,10 +331,10 @@ export function applyDrill(q: DashboardQuery, d: Drill): DashboardQuery {
 /* ---------- 交易时段 ---------- */
 
 export const SESSION_LABELS: Record<Session, string> = {
-  asia: "亚盘",
-  europe: "欧盘",
-  ny: "美盘",
-  off: "其他",
+  get asia() { return tr("亚盘"); },
+  get europe() { return tr("欧盘"); },
+  get ny() { return tr("美盘"); },
+  get off() { return tr("其他"); },
 };
 
 /**

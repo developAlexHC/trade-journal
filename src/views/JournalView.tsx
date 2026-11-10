@@ -1,3 +1,4 @@
+import { tr } from "../i18n";
 import { ItemView, Notice, TAbstractFile, TFile, WorkspaceLeaf } from "obsidian";
 import React from "react";
 import { createRoot, Root } from "react-dom/client";
@@ -27,7 +28,7 @@ export class JournalView extends ItemView {
   }
 
   getDisplayText(): string {
-    return "交易日志";
+    return tr("交易日志");
   }
 
   getIcon(): string {
@@ -63,11 +64,11 @@ export class JournalView extends ItemView {
     // 侧边栏 ⇄ 主区域一键切换
     const inSidebar = !!this.containerEl.closest(".mod-sidedock, .mod-right-split, .mod-left-split");
     if (inSidebar) {
-      this.addAction("maximize", "在主区域打开", () =>
+      this.addAction("maximize", tr("在主区域打开"), () =>
         void this.plugin.activate(this.tab, "main")
       );
     } else {
-      this.addAction("panel-right", "在右侧边栏打开", () =>
+      this.addAction("panel-right", tr("在右侧边栏打开"), () =>
         void this.plugin.activate(this.tab, "side")
       );
     }
@@ -77,6 +78,14 @@ export class JournalView extends ItemView {
     this.root?.unmount();
     this.root = null;
     this.mountEl = null;
+  }
+
+  /** Drop the React tree and render fresh (used after a language switch) */
+  remount(): void {
+    this.root?.unmount();
+    this.root = null;
+    this.mountEl = null;
+    this.renderApp();
   }
 
   setTab(tab: Tab): void {
@@ -95,7 +104,7 @@ export class JournalView extends ItemView {
     try {
       this.trades = await this.plugin.store.loadAll();
     } catch (e) {
-      console.error("[trade-journal] 读取交易记录失败", e);
+      console.error(tr("[trade-journal] 读取交易记录失败"), e);
     } finally {
       this.loading = false;
       this.renderApp();
@@ -148,14 +157,14 @@ export class JournalView extends ItemView {
           const r = await this.plugin.store.removeMany(ts);
           if (r.failed > 0) {
             // 有失败的要让用户知道，不要静默吞掉
-            new Notice(`已删除 ${r.removed} 笔，${r.failed} 笔未找到或删除失败`);
+            new Notice(tr("已删除 {0} 笔，{1} 笔未找到或删除失败", r.removed, r.failed));
           }
           await this.reload();
         }}
         onSetSetup={async (ts: Trade[], setup: string) => {
           const r = await this.plugin.store.updateSetupMany(ts, setup);
           if (r.failed > 0) {
-            new Notice(`已更新 ${r.updated} 笔，${r.failed} 笔写入失败`);
+            new Notice(tr("已更新 {0} 笔，{1} 笔写入失败", r.updated, r.failed));
           }
           await this.reload();
         }}

@@ -39,6 +39,9 @@ import { formatMetric, compareMetric, REGISTRY_BY_ID } from "../src/services/met
 import { buildInsights, headline, highlights } from "../src/services/insights";
 import { auditTrades, hasGap } from "../src/services/quality";
 import { accountFolder, noteFilePath } from "../src/services/paths";
+import { getLang, monthYear, resolveLang, setLang, tr } from "../src/i18n";
+import { en } from "../src/i18n/en";
+import { zhTW } from "../src/i18n/zh-TW";
 
 let failed = 0;
 function ok(name: string, cond: boolean, extra?: unknown) {
@@ -673,6 +676,34 @@ const tvSnap2 = buildSnapshot(accDays, { preset: "all", filters: { accounts: ["T
 ok("全部账户每日盈亏合并", allSnap2.days.find((d) => d.date === "2026-10-01")?.pnl === 400);
 ok("单账户每日盈亏只算自己", ampSnap2.days.find((d) => d.date === "2026-10-01")?.pnl === 100, ampSnap2.days);
 ok("另一账户不同日", tvSnap2.days.length === 2 && tvSnap2.days[0].pnl === 300, tvSnap2.days);
+
+
+/* ---- i18n ---- */
+{
+  const enKeys = Object.keys(en).sort();
+  const twKeys = Object.keys(zhTW).sort();
+  ok("en / zh-TW key 集合一致", JSON.stringify(enKeys) === JSON.stringify(twKeys));
+  const ph = (x: string) => (x.match(/\{\d+\}/g) ?? []).sort().join(",");
+  const bad = enKeys.filter((k) => ph(k) !== ph((en as Record<string, string>)[k]) || ph(k) !== ph((zhTW as Record<string, string>)[k]));
+  ok("翻译占位符与原文一致", bad.length === 0, bad);
+  ok("默认语言是简中", getLang() === "zh-CN" && tr("胜率") === "胜率");
+  setLang("en");
+  ok("英文翻译", tr("胜率") === "Win rate");
+  ok("英文插值", tr("共 {0} 笔", 5) === "5 trades");
+  ok("英文月份", monthYear(2026, 10) === "Oct 2026");
+  ok("英文 GAP 标签随语言变化", auditTrades([{ ...mkTrade("2026-10-01", 1), setup: "" }]).some((g) => g.label === "No setup"));
+  ok("英文下解析中文方向仍有效", normalizeDirection("做多") === "long" && normalizeDirection("賣出") === "short");
+  setLang("zh-TW");
+  ok("繁中翻译", tr("盈亏") === "損益" && tr("显示 {0} / {1} 笔", 3, 9) === "顯示 3 / 9 筆");
+  setLang("zh-CN");
+  ok("auto: zh-TW → 繁中", resolveLang("auto", "zh-TW") === "zh-TW");
+  ok("auto: zh → 简中", resolveLang("auto", "zh") === "zh-CN");
+  ok("auto: en / 空 → 英文", resolveLang("auto", "en") === "en" && resolveLang("auto", "") === "en");
+  ok("显式设置优先", resolveLang("zh-TW", "en") === "zh-TW");
+  const twRows = parseCsv("日期,標的,方向,數量,開倉價,平倉價,手續費\n2026-10-09,2330,買進,1000,1000,1010,20");
+  const tw = buildDrafts(twRows.slice(1), twRows[0], detectColumns(twRows[0]));
+  ok("繁中表头可自动识别", tw.drafts.length === 1 && tw.drafts[0].direction === "long", tw);
+}
 
 
 console.log(failed === 0 ? "\n全部通过" : `\n${failed} 项失败`);

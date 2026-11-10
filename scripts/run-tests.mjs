@@ -27,6 +27,12 @@ const cases = [
     // react-dom/server 里带 dynamic require，必须走 cjs
     format: "cjs",
   },
+  {
+    name: "多语言渲染",
+    entry: "scripts/i18n-render-test.tsx",
+    out: "i18n-render-test.cjs",
+    format: "cjs",
+  },
 ];
 
 mkdirSync(outDir, { recursive: true });

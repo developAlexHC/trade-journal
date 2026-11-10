@@ -1,3 +1,4 @@
+import { numberLocale, tr } from "../i18n";
 import React, { createContext, useContext } from "react";
 
 export const CurrencyContext = createContext<string>("¥");
@@ -6,29 +7,39 @@ export function useCurrency(): string {
   return useContext(CurrencyContext);
 }
 
-const nf2 = new Intl.NumberFormat("zh-CN", {
-  minimumFractionDigits: 2,
-  maximumFractionDigits: 2,
-});
-
-const nf0 = new Intl.NumberFormat("zh-CN", { maximumFractionDigits: 0 });
+// Intl formatters are cached per locale; the locale can change at runtime.
+const fmtCache = new Map<string, Intl.NumberFormat>();
+function nf(decimals: 0 | 2): Intl.NumberFormat {
+  const key = `${numberLocale()}|${decimals}`;
+  let f = fmtCache.get(key);
+  if (!f) {
+    f = new Intl.NumberFormat(
+      numberLocale(),
+      decimals === 0 ? { maximumFractionDigits: 0 } : { minimumFractionDigits: 2, maximumFractionDigits: 2 }
+    );
+    fmtCache.set(key, f);
+  }
+  return f;
+}
+const nf2 = () => nf(2);
+const nf0 = () => nf(0);
 
 export function fmtNum(v: number, decimals = 2): string {
   if (!Number.isFinite(v)) return "—";
-  return decimals === 0 ? nf0.format(v) : nf2.format(v);
+  return decimals === 0 ? nf0().format(v) : nf2().format(v);
 }
 
 /** 带货币符号与正负号，纯函数，可在任意位置调用 */
 export function money(v: number, cur = "¥"): string {
   if (!Number.isFinite(v)) return "—";
   const sign = v > 0 ? "+" : v < 0 ? "-" : "";
-  return `${sign}${cur}${nf2.format(Math.abs(v))}`;
+  return `${sign}${cur}${nf2().format(Math.abs(v))}`;
 }
 
 export function fmtSigned(v: number): string {
   if (!Number.isFinite(v)) return "—";
   const sign = v > 0 ? "+" : v < 0 ? "-" : "";
-  return `${sign}${nf2.format(Math.abs(v))}`;
+  return `${sign}${nf2().format(Math.abs(v))}`;
 }
 
 export function fmtPct(v: number, digits = 1): string {
@@ -71,7 +82,7 @@ export function StatCard(props: {
       {d && d.tone !== "flat" && (
         <div className={`tj-stat-delta ${d.tone === "up" ? "tj-pos" : "tj-neg"}`}>
           {d.tone === "up" ? "▲" : "▼"} {d.text}
-          <span className="tj-stat-delta-label">{d.label ?? "较上期"}</span>
+          <span className="tj-stat-delta-label">{d.label ?? tr("较上期")}</span>
         </div>
       )}
       {props.hint !== undefined && <div className="tj-stat-hint">{props.hint}</div>}

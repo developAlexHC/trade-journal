@@ -1,3 +1,4 @@
+import { tr } from "../i18n";
 import { App, TFile, TFolder, normalizePath } from "obsidian";
 import { Session, Trade, TradeDraft, tradeKey } from "../types";
 import { parseFrontmatter, stringifyFrontmatter } from "./frontmatter";
@@ -216,7 +217,7 @@ export class TradeStore {
   /** 只改策略字段，正文和其它字段原样保留 */
   async updateSetup(trade: Trade, setup: string): Promise<void> {
     const file = this.app.vault.getAbstractFileByPath(trade.id);
-    if (!(file instanceof TFile)) throw new Error(`找不到 ${trade.id}`);
+    if (!(file instanceof TFile)) throw new Error(tr("找不到 {0}", trade.id));
     const raw = await this.app.vault.read(file);
     const { data, body } = parseFrontmatter(raw);
     if (setup.trim()) data.setup = setup.trim();

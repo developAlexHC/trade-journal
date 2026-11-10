@@ -1,15 +1,26 @@
+import { LANG_OPTIONS, LangSetting, resolveLang, setLang, tr } from "./i18n";
 import {
   App,
   Plugin,
   PluginSettingTab,
   Setting,
   WorkspaceLeaf,
+  getLanguage,
   type SettingDefinitionItem,
 } from "obsidian";
 import { JournalView, VIEW_TYPE } from "./views/JournalView";
 import { TradeStore } from "./services/store";
 import { DEFAULT_LAYOUT, WidgetLayout, normalizeLayout } from "./services/layout";
 import type { Tab } from "./components/JournalApp";
+
+/** Obsidian's UI language; getLanguage() only exists on 1.8.7+ */
+function obsidianLanguage(): string | undefined {
+  try {
+    return typeof getLanguage === "function" ? getLanguage() : undefined;
+  } catch {
+    return undefined;
+  }
+}
 
 /** main = 主区域新标签页；side = 右侧边栏 */
 type Placement = "main" | "side";
@@ -25,6 +36,8 @@ interface TradeJournalSettings {
   layout: WidgetLayout[];
   /** 打平区间：|pnl| ≤ 这个值算打平，不计入胜负 */
   breakEven: number;
+  /** UI language; "auto" follows Obsidian's own language */
+  language: LangSetting;
 }
 
 const DEFAULT_SETTINGS: TradeJournalSettings = {
@@ -41,6 +54,7 @@ const DEFAULT_SETTINGS: TradeJournalSettings = {
   ],
   layout: DEFAULT_LAYOUT,
   breakEven: 0,
+  language: "auto",
 };
 
 export default class TradeJournalPlugin extends Plugin {
@@ -52,29 +66,30 @@ export default class TradeJournalPlugin extends Plugin {
 
   async onload(): Promise<void> {
     await this.loadSettings();
+    setLang(resolveLang(this.settings.language, obsidianLanguage()));
     this.store = new TradeStore(this.app, this.settings.folder, this.settings.breakEven);
 
     this.registerView(VIEW_TYPE, (leaf: WorkspaceLeaf) => new JournalView(leaf, this));
 
-    this.addRibbonIcon("chart-line", "交易日志", () => void this.activate());
+    this.addRibbonIcon("chart-line", tr("交易日志"), () => void this.activate());
     this.addCommand({
       id: "open-journal",
-      name: "打开交易日志",
+      name: tr("打开交易日志"),
       callback: () => void this.activate(),
     });
     this.addCommand({
       id: "open-journal-main",
-      name: "在主区域（新标签页）打开交易日志",
+      name: tr("在主区域（新标签页）打开交易日志"),
       callback: () => void this.activate(undefined, "main"),
     });
     this.addCommand({
       id: "open-journal-side",
-      name: "在右侧边栏打开交易日志",
+      name: tr("在右侧边栏打开交易日志"),
       callback: () => void this.activate(undefined, "side"),
     });
     this.addCommand({
       id: "import-csv",
-      name: "导入 CSV 交易记录",
+      name: tr("导入 CSV 交易记录"),
       callback: () => void this.activate("import"),
     });
 
@@ -134,11 +149,22 @@ export default class TradeJournalPlugin extends Plugin {
     this.settings.layout = normalizeLayout(this.settings.layout);
     const be = Number(this.settings.breakEven);
     this.settings.breakEven = Number.isFinite(be) && be > 0 ? be : 0;
+    if (!LANG_OPTIONS.some((o) => o.value === this.settings.language)) this.settings.language = "auto";
   }
 
   async saveSettings(): Promise<void> {
     await this.saveData(this.settings);
     this.store = new TradeStore(this.app, this.settings.folder, this.settings.breakEven);
+  }
+
+  /** Switch UI language and rebuild open views so every label is re-evaluated */
+  async applyLanguage(lang: LangSetting): Promise<void> {
+    this.settings.language = lang;
+    setLang(resolveLang(lang, obsidianLanguage()));
+    await this.saveSettings();
+    for (const leaf of this.app.workspace.getLeavesOfType(VIEW_TYPE)) {
+      if (leaf.view instanceof JournalView) leaf.view.remount();
+    }
   }
 
   /** 设置改了影响已渲染的数据时，让所有打开的视图重新读一遍 */
@@ -161,13 +187,23 @@ class TradeJournalSettingTab extends PluginSettingTab {
   getSettingDefinitions(): SettingDefinitionItem[] {
     return [
       {
-        name: "在主区域打开",
-        desc: "关闭后默认打开到右侧边栏；两个位置都能用视图右上角的按钮随时切换。",
+        name: "Language / 語言",
+        desc: tr("界面语言。「自动」会跟随 Obsidian 的语言设置。"),
+        control: {
+          type: "dropdown",
+          key: "language",
+          defaultValue: "auto",
+          options: Object.fromEntries(LANG_OPTIONS.map((o) => [o.value, o.label])),
+        },
+      },
+      {
+        name: tr("在主区域打开"),
+        desc: tr("关闭后默认打开到右侧边栏；两个位置都能用视图右上角的按钮随时切换。"),
         control: { type: "toggle", key: "openInMainArea", defaultValue: true },
       },
       {
-        name: "交易笔记目录",
-        desc: "交易记录会以 Markdown 形式保存在 vault 的这个目录下",
+        name: tr("交易笔记目录"),
+        desc: tr("交易记录会以 Markdown 形式保存在 vault 的这个目录下"),
         control: {
           type: "text",
           key: "folder",
@@ -176,13 +212,13 @@ class TradeJournalSettingTab extends PluginSettingTab {
         },
       },
       {
-        name: "货币符号",
-        desc: "显示盈亏时使用的前缀，例如 ¥ 或 $",
+        name: tr("货币符号"),
+        desc: tr("显示盈亏时使用的前缀，例如 ¥ 或 $"),
         control: { type: "text", key: "currency", placeholder: "¥", defaultValue: "¥" },
       },
       {
-        name: "打平区间",
-        desc: "单笔盈亏落在这个范围内算打平，不计入胜率、也不打断连胜连亏。填 0 表示只有刚好 0 才算平。",
+        name: tr("打平区间"),
+        desc: tr("单笔盈亏落在这个范围内算打平，不计入胜率、也不打断连胜连亏。填 0 表示只有刚好 0 才算平。"),
         control: { type: "text", key: "breakEven", placeholder: "0", defaultValue: "0" },
       },
     ];
@@ -196,6 +232,11 @@ class TradeJournalSettingTab extends PluginSettingTab {
     const settings = this.plugin.settings as unknown as Record<string, unknown>;
     const text = typeof value === "string" ? value.trim() : "";
 
+    if (key === "language") {
+      await this.plugin.applyLanguage(value as LangSetting);
+      this.display();
+      return;
+    }
     if (key === "folder") settings.folder = text || "Trading";
     else if (key === "currency") settings.currency = text || "¥";
     else if (key === "breakEven") {
@@ -212,14 +253,25 @@ class TradeJournalSettingTab extends PluginSettingTab {
     containerEl.empty();
 
     new Setting(containerEl)
-      .setName("默认打开位置")
+      .setName("Language / 語言")
+      .setDesc(tr("界面语言。「自动」会跟随 Obsidian 的语言设置。"))
+      .addDropdown((d) => {
+        for (const o of LANG_OPTIONS) d.addOption(o.value, o.label);
+        d.setValue(this.plugin.settings.language).onChange(async (v) => {
+          await this.plugin.applyLanguage(v as LangSetting);
+          this.display();
+        });
+      });
+
+    new Setting(containerEl)
+      .setName(tr("默认打开位置"))
       .setDesc(
-        "主区域：占满中间的编辑区，适合看图表；右侧边栏：一直挂在右边，边看行情边记。两个位置都能随时切换（视图右上角有按钮）。"
+        tr("主区域：占满中间的编辑区，适合看图表；右侧边栏：一直挂在右边，边看行情边记。两个位置都能随时切换（视图右上角有按钮）。")
       )
       .addDropdown((d) =>
         d
-          .addOption("main", "主区域（新标签页）")
-          .addOption("side", "右侧边栏")
+          .addOption("main", tr("主区域（新标签页）"))
+          .addOption("side", tr("右侧边栏"))
           .setValue(this.plugin.settings.openInMainArea ? "main" : "side")
           .onChange(async (v) => {
             this.plugin.settings.openInMainArea = v === "main";
@@ -228,8 +280,8 @@ class TradeJournalSettingTab extends PluginSettingTab {
       );
 
     new Setting(containerEl)
-      .setName("交易笔记目录")
-      .setDesc("交易记录会以 Markdown 形式保存在 vault 的这个目录下")
+      .setName(tr("交易笔记目录"))
+      .setDesc(tr("交易记录会以 Markdown 形式保存在 vault 的这个目录下"))
       .addText((t) =>
         t
           .setPlaceholder("Trading")
@@ -241,8 +293,8 @@ class TradeJournalSettingTab extends PluginSettingTab {
       );
 
     new Setting(containerEl)
-      .setName("货币符号")
-      .setDesc("显示盈亏时使用的前缀，例如 ¥ 或 $")
+      .setName(tr("货币符号"))
+      .setDesc(tr("显示盈亏时使用的前缀，例如 ¥ 或 $"))
       .addText((t) =>
         t
           .setPlaceholder("¥")
@@ -255,10 +307,10 @@ class TradeJournalSettingTab extends PluginSettingTab {
       );
 
     new Setting(containerEl)
-      .setName("打平区间")
+      .setName(tr("打平区间"))
       .setDesc(
-        "单笔盈亏落在这个范围内算打平，不计入胜率、也不打断连胜连亏。填 0 表示只有刚好 0 才算平。" +
-          "期货建议填 1–2 个最小跳动乘合约乘数（MNQ 约 10，MES 约 6），把手续费级别的噪音挡掉。"
+        tr("单笔盈亏落在这个范围内算打平，不计入胜率、也不打断连胜连亏。填 0 表示只有刚好 0 才算平。") +
+          tr("期货建议填 1–2 个最小跳动乘合约乘数（MNQ 约 10，MES 约 6），把手续费级别的噪音挡掉。")
       )
       .addText((t) =>
         t
@@ -273,9 +325,9 @@ class TradeJournalSettingTab extends PluginSettingTab {
       );
 
     new Setting(containerEl)
-      .setName("数据说明")
+      .setName(tr("数据说明"))
       .setDesc(
-        "每笔交易是目录里的一个 .md 文件，字段存在 frontmatter，正文是你的复盘笔记。可以直接在 Obsidian 里编辑，也可以同步/备份。"
+        tr("每笔交易是目录里的一个 .md 文件，字段存在 frontmatter，正文是你的复盘笔记。可以直接在 Obsidian 里编辑，也可以同步/备份。")
       );
   }
 }

@@ -1,3 +1,4 @@
+import { numberLocale, tr } from "../i18n";
 import { Trade } from "../types";
 import { DashboardSnapshot } from "./aggregate";
 import { GroupStat, byWeekday, groupBy } from "./analytics";
@@ -29,7 +30,7 @@ function fmtMoney(v: number, cur: string): string {
   const abs = Math.abs(v);
   const body =
     abs >= 1000
-      ? abs.toLocaleString("zh-CN", { minimumFractionDigits: 2, maximumFractionDigits: 2 })
+      ? abs.toLocaleString(numberLocale(), { minimumFractionDigits: 2, maximumFractionDigits: 2 })
       : abs.toFixed(2);
   return `${sign}${cur}${body}`;
 }
@@ -40,25 +41,25 @@ const plural = (n: number, unit: string) => `${n} ${unit}`;
 /** 概览顶部那句话：本期发生了什么 */
 export function headline(s: DashboardSnapshot, cur: string): string {
   const { base, prevBase } = s;
-  if (!base.s.count) return "这个区间没有交易。";
+  if (!base.s.count) return tr("这个区间没有交易。");
 
   const days = base.days.length;
-  const verb = base.s.netPnl >= 0 ? "净赚" : "净亏";
+  const verb = base.s.netPnl >= 0 ? tr("净赚") : tr("净亏");
   const parts = [
-    `${days} 个交易日、${base.s.count} 笔，${verb} ${fmtMoney(Math.abs(base.s.netPnl), cur)}`,
-    `胜率 ${pct(base.s.winRate)}`,
+    tr("{0} 个交易日、{1} 笔，{2} {3}", days, base.s.count, verb, fmtMoney(Math.abs(base.s.netPnl), cur)),
+    tr("胜率 {0}", pct(base.s.winRate)),
   ];
-  if (base.s.losses > 0 && base.s.wins > 0) parts.push(`盈亏比 ${base.s.profitFactor.toFixed(2)}`);
+  if (base.s.losses > 0 && base.s.wins > 0) parts.push(tr("盈亏比 {0}", base.s.profitFactor.toFixed(2)));
 
   if (prevBase.s.count) {
     const delta = base.s.netPnl - prevBase.s.netPnl;
     parts.push(
       delta === 0
-        ? "与上期打平"
-        : `${delta > 0 ? "比上期多" : "比上期少"} ${fmtMoney(Math.abs(delta), cur)}`
+        ? tr("与上期打平")
+        : `${delta > 0 ? tr("比上期多") : tr("比上期少")} ${fmtMoney(Math.abs(delta), cur)}`
     );
   }
-  return parts.join("，") + "。";
+  return parts.join(tr("，")) + tr("。");
 }
 
 export interface Highlight {
@@ -74,9 +75,9 @@ const MIN_SAMPLE = 2;
 
 export function highlights(trades: Trade[]): { strong: Highlight[]; weak: Highlight[] } {
   const dims: { name: string; items: GroupStat[] }[] = [
-    { name: "策略", items: groupBy(trades, (t) => t.setup) },
-    { name: "标的", items: groupBy(trades, (t) => t.symbol) },
-    { name: "星期", items: byWeekday(trades).filter((w) => w.key !== "未知") },
+    { name: tr("策略"), items: groupBy(trades, (t) => t.setup) },
+    { name: tr("标的"), items: groupBy(trades, (t) => t.symbol) },
+    { name: tr("星期"), items: byWeekday(trades).filter((w) => w.key !== tr("未知")) },
   ];
 
   const strong: Highlight[] = [];
@@ -112,8 +113,8 @@ export function buildInsights(s: DashboardSnapshot, cur: string): Insight[] {
     out.push({
       id: "sample",
       tone: "info",
-      text: `样本只有 ${plural(n, "笔")}，胜率和盈亏比的波动会很大`,
-      detail: "同一个策略再打 20 笔，数字可能完全变样",
+      text: tr("样本只有 {0}，胜率和盈亏比的波动会很大", plural(n, tr("笔"))),
+      detail: tr("同一个策略再打 20 笔，数字可能完全变样"),
     });
   }
 
@@ -125,8 +126,8 @@ export function buildInsights(s: DashboardSnapshot, cur: string): Insight[] {
       out.push({
         id: "tailRisk",
         tone: "bad",
-        text: `最大单笔亏损是平均盈利的 ${ratio.toFixed(1)} 倍`,
-        detail: `亏一次要 ${Math.ceil(ratio)} 笔盈利才补回来（${fmtMoney(b.s.worstTrade, cur)} / ${fmtMoney(b.s.avgWin, cur)}）`,
+        text: tr("最大单笔亏损是平均盈利的 {0} 倍", ratio.toFixed(1)),
+        detail: tr("亏一次要 {0} 笔盈利才补回来（{1} / {2}）", Math.ceil(ratio), fmtMoney(b.s.worstTrade, cur), fmtMoney(b.s.avgWin, cur)),
       });
     }
   }
@@ -135,8 +136,8 @@ export function buildInsights(s: DashboardSnapshot, cur: string): Insight[] {
     out.push({
       id: "lossStreak",
       tone: "bad",
-      text: `最长连亏 ${plural(b.s.maxLossStreak, "笔")}`,
-      detail: "连亏段通常是仓位和情绪同时失控的地方",
+      text: tr("最长连亏 {0}", plural(b.s.maxLossStreak, tr("笔"))),
+      detail: tr("连亏段通常是仓位和情绪同时失控的地方"),
     });
   }
 
@@ -149,8 +150,8 @@ export function buildInsights(s: DashboardSnapshot, cur: string): Insight[] {
       out.push({
         id: "concentration",
         tone: "info",
-        text: `${pct(share)} 的利润来自「${top.key}」`,
-        detail: `${top.count} 笔带来 ${fmtMoney(top.pnl, cur)}，其余策略合计只占 ${pct(1 - share)}`,
+        text: tr("{0} 的利润来自「{1}」", pct(share), top.key),
+        detail: tr("{0} 笔带来 {1}，其余策略合计只占 {2}", top.count, fmtMoney(top.pnl, cur), pct(1 - share)),
       });
     }
   }
@@ -162,15 +163,15 @@ export function buildInsights(s: DashboardSnapshot, cur: string): Insight[] {
       out.push({
         id: "underwater",
         tone: "bad",
-        text: `${pct(tu)} 的交易日都在水下`,
-        detail: `权益低于前高的日子有 ${Math.round(tu * b.days.length)} 天，共 ${b.days.length} 个交易日`,
+        text: tr("{0} 的交易日都在水下", pct(tu)),
+        detail: tr("权益低于前高的日子有 {0} 天，共 {1} 个交易日", Math.round(tu * b.days.length), b.days.length),
       });
     } else if (tu <= 0.2) {
       out.push({
         id: "underwater",
         tone: "good",
-        text: `只有 ${pct(tu)} 的交易日在水下`,
-        detail: "资金曲线基本贴着新高走",
+        text: tr("只有 {0} 的交易日在水下", pct(tu)),
+        detail: tr("资金曲线基本贴着新高走"),
       });
     }
   }
@@ -182,8 +183,8 @@ export function buildInsights(s: DashboardSnapshot, cur: string): Insight[] {
     out.push({
       id: "currentDd",
       tone: "info",
-      text: `当前还在水下 ${fmtMoney(b.ddStats.current, cur)}`,
-      detail: ratio > 0 ? `距前高回落 ${pct(ratio, 1)}，需要这么多盈利才能回本` : undefined,
+      text: tr("当前还在水下 {0}", fmtMoney(b.ddStats.current, cur)),
+      detail: ratio > 0 ? tr("距前高回落 {0}，需要这么多盈利才能回本", pct(ratio, 1)) : undefined,
     });
   }
 
@@ -194,8 +195,8 @@ export function buildInsights(s: DashboardSnapshot, cur: string): Insight[] {
       out.push({
         id: "fees",
         tone: "bad",
-        text: `手续费吃掉毛利的 ${pct(rate)}`,
-        detail: `${fmtMoney(b.s.fees, cur)} 手续费 / ${fmtMoney(b.s.grossProfit, cur)} 毛利`,
+        text: tr("手续费吃掉毛利的 {0}", pct(rate)),
+        detail: tr("{0} 手续费 / {1} 毛利", fmtMoney(b.s.fees, cur), fmtMoney(b.s.grossProfit, cur)),
       });
     }
   }
@@ -206,8 +207,8 @@ export function buildInsights(s: DashboardSnapshot, cur: string): Insight[] {
     out.push({
       id: "setupGap",
       tone: "info",
-      text: `${setupGap.count} 笔还没填策略`,
-      detail: "策略维度的强项/短板现在只能看到一个「未分类」，补齐后才有对比价值",
+      text: tr("{0} 笔还没填策略", setupGap.count),
+      detail: tr("策略维度的强项/短板现在只能看到一个「未分类」，补齐后才有对比价值"),
     });
   }
 
@@ -219,11 +220,11 @@ export function buildInsights(s: DashboardSnapshot, cur: string): Insight[] {
       tone: "info",
       text:
         withStop === 0
-          ? `R 倍数暂不可用：${n} 笔里 0 笔填了止损价`
-          : `R 倍数可覆盖 ${withStop}/${n} 笔`,
+          ? tr("R 倍数暂不可用：{0} 笔里 0 笔填了止损价", n)
+          : tr("R 倍数可覆盖 {0}/{1} 笔", withStop, n),
       detail:
         withStop === 0
-          ? "在笔记 frontmatter 补 stop: 价格，卡片和回撤统计会自动用上"
+          ? tr("在笔记 frontmatter 补 stop: 价格，卡片和回撤统计会自动用上")
           : undefined,
     });
   }

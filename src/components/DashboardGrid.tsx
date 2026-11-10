@@ -1,3 +1,4 @@
+import { tr } from "../i18n";
 import React, { useEffect, useMemo, useRef, useState } from "react";
 import {
   GRID_COLUMNS,
@@ -172,7 +173,7 @@ export function DashboardGrid(props: {
         const span = spanFor(item.w, cols);
         const drag: DragHandleProps = {
           onPointerDown: startDrag(item.id),
-          title: editable ? "按住拖动换位" : "",
+          title: editable ? tr("按住拖动换位") : "",
           className: editable ? "tj-widget-handle" : "",
         };
         return (
@@ -192,7 +193,7 @@ export function DashboardGrid(props: {
               <span
                 className="tj-widget-resize"
                 onPointerDown={startResize(item)}
-                title="拖动改变大小"
+                title={tr("拖动改变大小")}
               />
             )}
           </div>

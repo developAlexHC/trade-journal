@@ -1,3 +1,4 @@
+import { tr } from "../i18n";
 import { Outcome, Trade } from "../types";
 
 export interface Summary {
@@ -339,7 +340,7 @@ export interface GroupStat {
 ): GroupStat[] {
   const buckets = new Map<string, Trade[]>();
   for (const t of trades) {
-    const k = keyFn(t) || "未分类";
+    const k = keyFn(t) || tr("未分类");
     const arr = buckets.get(k) ?? [];
     arr.push(t);
     buckets.set(k, arr);
@@ -358,16 +359,16 @@ export interface GroupStat {
   return out.sort((a, b) => b.pnl - a.pnl);
 }
 
-const WEEKDAYS = ["周日", "周一", "周二", "周三", "周四", "周五", "周六"];
+const WEEKDAYS = () => [tr("周日"), tr("周一"), tr("周二"), tr("周三"), tr("周四"), tr("周五"), tr("周六")];
 
 export function byWeekday(trades: Trade[]): GroupStat[] {
   const order = [1, 2, 3, 4, 5, 6, 0];
   const stats = groupBy(trades, (t) => {
     const d = new Date(t.date + "T00:00:00");
-    return Number.isNaN(d.getTime()) ? "未知" : WEEKDAYS[d.getDay()];
+    return Number.isNaN(d.getTime()) ? tr("未知") : WEEKDAYS()[d.getDay()];
   });
   const rank = (k: string) => {
-    const i = WEEKDAYS.indexOf(k);
+    const i = WEEKDAYS().indexOf(k);
     return i === -1 ? 99 : order.indexOf(i);
   };
   return stats.sort((a, b) => rank(a.key) - rank(b.key));

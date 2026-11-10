@@ -1,3 +1,4 @@
+import { tr } from "../i18n";
 import { Trade } from "../types";
 
 /**
@@ -17,24 +18,24 @@ export interface GapMeta {
 
 export const GAP_META: Record<GapKind, GapMeta> = {
   setup: {
-    label: "缺策略",
-    hint: "补上策略后，策略维度的强项/短板才有意义",
+    get label() { return tr("缺策略"); },
+    get hint() { return tr("补上策略后，策略维度的强项/短板才有意义"); },
   },
   stop: {
-    label: "缺止损",
-    hint: "补 stop 价格后，R 倍数和按风险的口径才能算",
+    get label() { return tr("缺止损"); },
+    get hint() { return tr("补 stop 价格后，R 倍数和按风险的口径才能算"); },
   },
   exitTime: {
-    label: "缺平仓时间",
-    hint: "订单历史配对会自动带上；手工记录需要在 frontmatter 补 exitTime",
+    get label() { return tr("缺平仓时间"); },
+    get hint() { return tr("订单历史配对会自动带上；手工记录需要在 frontmatter 补 exitTime"); },
   },
   tags: {
-    label: "缺标签",
-    hint: "打上自己的标签，之后能按标签横向对比",
+    get label() { return tr("缺标签"); },
+    get hint() { return tr("打上自己的标签，之后能按标签横向对比"); },
   },
   notes: {
-    label: "没写复盘",
-    hint: "正文太短，补两句当时的判断和情绪",
+    get label() { return tr("没写复盘"); },
+    get hint() { return tr("正文太短，补两句当时的判断和情绪"); },
   },
 };
 
@@ -46,7 +47,9 @@ const AUTO_TAGS = new Set(["trade", "auto-paired", "import", "csv"]);
 export function hasGap(t: Trade, kind: GapKind): boolean {
   switch (kind) {
     case "setup":
-      return !t.setup.trim() || t.setup.trim() === "未分类";
+      const setup = t.setup.trim();
+      // "未分类" may be stored literally in notes; also accept the translated label
+      return !setup || setup === "未分类" || setup === tr("未分类");
     case "stop":
       return t.stop === null || !(t.stop > 0);
     case "exitTime":

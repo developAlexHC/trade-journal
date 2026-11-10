@@ -1,3 +1,4 @@
+import { tr } from "../i18n";
 import React, { useEffect, useMemo, useState } from "react";
 import { Direction, Trade, TradeDraft } from "../types";
 import { uniqueValues } from "../services/analytics";
@@ -85,7 +86,7 @@ export function JournalApp(props: JournalAppProps) {
   // 顶部账户切换：只列数据里真实存在的账户，没有账户的交易单列一项「未分类」
   const accountOptions = useMemo(() => {
     const opts = accounts.map((a) => ({ value: a, label: a }));
-    if (trades.some((t) => !t.account.trim())) opts.push({ value: "", label: "未分类" });
+    if (trades.some((t) => !t.account.trim())) opts.push({ value: "", label: tr("未分类") });
     return opts;
   }, [accounts, trades]);
   const accountCount = useMemo(() => {
@@ -178,7 +179,7 @@ export function JournalApp(props: JournalAppProps) {
   const hasFilter = hasActiveQuery(query);
 
   const selectedAccount = f.accounts?.length === 1 ? f.accounts[0] : null;
-  const optAll = [{ value: "all", label: "全部" }];
+  const optAll = [{ value: "all", label: tr("全部") }];
   const oneOf = (v: string) => (v && v !== "all" ? [v] : []);
 
   return (
@@ -186,18 +187,18 @@ export function JournalApp(props: JournalAppProps) {
       <div className="tj-root">
         <header className="tj-header">
           <div className="tj-title">
-            <h2>交易日志</h2>
+            <h2>{tr("交易日志")}</h2>
             <div className="tj-title-meta">
-              <span>{trades.length} 笔记录</span>
+              <span>{tr("{0} 笔记录", trades.length)}</span>
               <span className="tj-dot" />
               {selectedAccount !== null && (
                 <>
-                  <span className="tj-acct-badge">{selectedAccount || "未分类"}</span>
+                  <span className="tj-acct-badge">{selectedAccount || tr("未分类")}</span>
                   <span className="tj-dot" />
                 </>
               )}
               <span className={toneClass(totalPnl)}>
-                当前筛选 {money(totalPnl, currency)}
+                {tr("当前筛选 {0}", money(totalPnl, currency))}
               </span>
             </div>
           </div>
@@ -207,10 +208,10 @@ export function JournalApp(props: JournalAppProps) {
               value={tab}
               onChange={setTab}
               options={[
-                { value: "overview", label: "速览" },
-                { value: "dashboard", label: "仪表盘" },
-                { value: "trades", label: "交易记录" },
-                { value: "import", label: "导入" },
+                { value: "overview", label: tr("速览") },
+                { value: "dashboard", label: tr("仪表盘") },
+                { value: "trades", label: tr("交易记录") },
+                { value: "import", label: tr("导入") },
               ]}
             />
             {props.onReload && (
@@ -219,9 +220,9 @@ export function JournalApp(props: JournalAppProps) {
                 className="tj-btn"
                 onClick={props.onReload}
                 disabled={loading}
-                title="重新读取 vault 里的交易笔记"
+                title={tr("重新读取 vault 里的交易笔记")}
               >
-                {loading ? "读取中…" : "刷新"}
+                {loading ? tr("读取中…") : tr("刷新")}
               </button>
             )}
           </div>
@@ -231,13 +232,13 @@ export function JournalApp(props: JournalAppProps) {
           <>
             {accountOptions.length > 1 && (
               <div className="tj-accounts">
-                <span className="tj-accounts-label">账户</span>
+                <span className="tj-accounts-label">{tr("账户")}</span>
                 <button
                   type="button"
                   className={`tj-account ${selectedAccount === null ? "is-on" : ""}`}
                   onClick={() => patch({ accounts: [] })}
                 >
-                  全部
+                  {tr("全部")}
                   <em>{trades.length}</em>
                 </button>
                 {accountOptions.map((a) => (
@@ -246,7 +247,7 @@ export function JournalApp(props: JournalAppProps) {
                     type="button"
                     className={`tj-account ${selectedAccount === a.value ? "is-on" : ""}`}
                     onClick={() => patch({ accounts: [a.value] })}
-                    title={a.value ? `只看账户 ${a.value}` : "只看没有账户的交易"}
+                    title={a.value ? tr("只看账户 {0}", a.value) : tr("只看没有账户的交易")}
                   >
                     {a.label}
                     <em>{accountCount.get(a.value) ?? 0}</em>
@@ -271,7 +272,7 @@ export function JournalApp(props: JournalAppProps) {
 
             <div className="tj-filters">
               <label className="tj-field">
-                <span>从</span>
+                <span>{tr("从")}</span>
                 <input
                   type="date"
                   value={query.preset === "custom" ? query.customFrom ?? "" : ""}
@@ -279,7 +280,7 @@ export function JournalApp(props: JournalAppProps) {
                 />
               </label>
               <label className="tj-field">
-                <span>到</span>
+                <span>{tr("到")}</span>
                 <input
                   type="date"
                   value={query.preset === "custom" ? query.customTo ?? "" : ""}
@@ -287,13 +288,13 @@ export function JournalApp(props: JournalAppProps) {
                 />
               </label>
             <Select
-              label="标的"
+              label={tr("标的")}
               value={f.symbols?.[0] ?? "all"}
               onChange={(v) => patch({ symbols: oneOf(v) })}
               options={[...optAll, ...symbols.map((s) => ({ value: s, label: s }))]}
             />
             <Select
-              label="策略"
+              label={tr("策略")}
               value={f.setups?.[0] ?? "all"}
               onChange={(v) => patch({ setups: oneOf(v) })}
               options={[
@@ -302,20 +303,20 @@ export function JournalApp(props: JournalAppProps) {
               ]}
             />
             <Select
-              label="方向"
+              label={tr("方向")}
               value={f.directions?.[0] ?? "all"}
               onChange={(v) =>
                 patch({ directions: v === "all" ? [] : [v as Direction] })
               }
               options={[
-                { value: "all", label: "全部" },
-                { value: "long", label: "做多" },
-                { value: "short", label: "做空" },
+                { value: "all", label: tr("全部") },
+                { value: "long", label: tr("做多") },
+                { value: "short", label: tr("做空") },
               ]}
             />
             {hasFilter && (
               <button type="button" className="tj-link" onClick={clearAll}>
-                清除筛选
+                {tr("清除筛选")}
               </button>
             )}
             </div>
@@ -339,9 +340,9 @@ export function JournalApp(props: JournalAppProps) {
           {tab === "overview" &&
             (trades.length === 0 ? (
               <Empty>
-                <p>还没有交易记录。</p>
+                <p>{tr("还没有交易记录。")}</p>
                 <button type="button" className="tj-btn primary" onClick={() => setTab("import")}>
-                  导入 CSV
+                  {tr("导入 CSV")}
                 </button>
               </Empty>
             ) : (
@@ -351,9 +352,9 @@ export function JournalApp(props: JournalAppProps) {
           {tab === "dashboard" &&
             (trades.length === 0 ? (
               <Empty>
-                <p>还没有交易记录。</p>
+                <p>{tr("还没有交易记录。")}</p>
                 <button type="button" className="tj-btn primary" onClick={() => setTab("import")}>
-                  导入 CSV
+                  {tr("导入 CSV")}
                 </button>
               </Empty>
             ) : (
@@ -372,16 +373,16 @@ export function JournalApp(props: JournalAppProps) {
           {tab === "trades" &&
             (trades.length === 0 ? (
               <Empty>
-                <p>还没有交易记录。</p>
+                <p>{tr("还没有交易记录。")}</p>
                 <button type="button" className="tj-btn primary" onClick={() => setTab("import")}>
-                  导入 CSV
+                  {tr("导入 CSV")}
                 </button>
               </Empty>
             ) : (
               <>
                 {gaps.length > 0 && (
                   <div className="tj-quality">
-                    <span className="tj-quality-label">数据体检</span>
+                    <span className="tj-quality-label">{tr("数据体检")}</span>
                     <div className="tj-quality-chips">
                       {gaps.map((g) => (
                         <button
@@ -396,18 +397,18 @@ export function JournalApp(props: JournalAppProps) {
                         </button>
                       ))}
                     </div>
-                    <span className="tj-quality-note">{gapScope.length} 笔待整理</span>
+                    <span className="tj-quality-note">{tr("{0} 笔待整理", gapScope.length)}</span>
                   </div>
                 )}
 
                 {activeGaps.length > 0 && (
                   <div className="tj-drill-bar">
                     <span>
-                      只看：<b>{activeGaps.map((k) => GAP_META[k].label).join(" + ")}</b> · 命中{" "}
-                      {filtered.length} 笔
+                      {tr("只看：")}<b>{activeGaps.map((k) => GAP_META[k].label).join(" + ")}</b>
+                      {tr(" · 命中 {0} 笔", filtered.length)}
                     </span>
                     <button type="button" className="tj-link" onClick={() => patch({ gaps: undefined })}>
-                      清除条件
+                      {tr("清除条件")}
                     </button>
                   </div>
                 )}
@@ -415,13 +416,14 @@ export function JournalApp(props: JournalAppProps) {
                 {drillFrom && (
                   <div className="tj-drill-bar">
                     <span>
-                      从图表下钻：<b>{drillFrom}</b> · 命中 {filtered.length} 笔
+                      {tr("从图表下钻：")}<b>{drillFrom}</b>
+                      {tr(" · 命中 {0} 笔", filtered.length)}
                     </span>
                     <button type="button" className="tj-link" onClick={clearAll}>
-                      清除条件
+                      {tr("清除条件")}
                     </button>
                     <button type="button" className="tj-link" onClick={() => setTab("dashboard")}>
-                      返回仪表盘
+                      {tr("返回仪表盘")}
                     </button>
                   </div>
                 )}
